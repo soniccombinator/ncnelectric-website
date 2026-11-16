@@ -11,6 +11,6 @@ const assert=require('node:assert'),fs=require('node:fs'),path=require('node:pat
     for(const m of src.matchAll(/(?:src|href)=["']([^"'#?:$]+\.(?:png|jpg|pdf|css|js|mjs|docx))["']|from\s*["']\.\/([^"']+)["']|url\(["']?([^"')]+\.(?:png|jpg))/g)){const ref=m[1]||m[2]||m[3];if(!/^https?:|\$\{/.test(ref))refs.add(ref.replace(/^\.\//,''))}
   }
   for(const ref of refs){const r=await fetch(base+'/'+ref);assert.equal(r.status,200,`missing file: ${ref}`)}
-  await import(path.join(web,'rental-model.mjs'));JSON.parse(fs.readFileSync(path.join(web,'terms.json'),'utf8'));
+  await import(require('node:url').pathToFileURL(path.join(web,'rental-model.mjs')).href);JSON.parse(fs.readFileSync(path.join(web,'terms.json'),'utf8'));
   console.log(`OK: home, health, ${refs.size} referenced files, rental-model.mjs, terms.json`);server.close();
 })().catch(e=>{console.error(e.message);process.exit(1)});
