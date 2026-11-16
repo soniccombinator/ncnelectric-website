@@ -6,6 +6,6 @@
   "engines": { "node": ">=20" },
   "scripts": {
     "start": "node server.cjs",
-    "test": "node test/smoke.cjs"
+    "test": "node test/smoke.cjs && node test/email.cjs"
   }
 }

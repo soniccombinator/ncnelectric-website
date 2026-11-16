@@ -43,8 +43,11 @@ Publish the revert the same way as any other change.
 - **Prices, rental terms, the T&C document, or legal wording** (`rental-model.mjs`, `terms.json`, the `.docx`):
   before publishing, repeat the exact change back to the person and get a clear "yes". The terms are pending
   counsel approval.
-- **Online application email sending** is not set up yet. Microsoft 365 needs IT approval first (see `docs/`).
-  Do not build or turn on email sending. Explain that it is waiting on IT.
-- `server.cjs`, `railway.json`, `package.json`, `test/` and `.github/` keep the site running. Do not change them
-  for normal content requests.
+- **Email** (application alerts to NCN and confirmations to applicants) is sent by the server through Microsoft 365
+  from the mailbox in the `MAIL_SENDER` Railway variable. Code: `api.cjs` (email text, validation) and `mail.cjs`.
+  Wording changes to these emails are fine (edit the text in `api.cjs`, run `npm test`). Never put email addresses
+  for NCN recipients in browser code; they live in the `MAIL_ADMIN_TO` Railway variable. If online submission shows
+  as unavailable, the Railway email variables are missing; tell the person to contact Sonic.
+- `server.cjs`, `mail.cjs`, `railway.json`, `package.json`, `scripts/`, `test/` and `.github/` keep the site running.
+  Do not change them for normal content requests.
 - This repository is public. Never add passwords, keys, tokens, customer data or internal documents to it.

@@ -12,5 +12,13 @@ NCN Generator Services website. Currently the original ChatGPT build (v26); to b
 
 ## Known issues before public launch
 - Rental terms page and `NCN T&C FINAL.docx` still contain internal drafting notes; counsel approval pending.
-- Online application submit is disabled until Microsoft 365 sending is set up (see docs/).
 - Never commit passwords, tokens or Microsoft 365 secrets; use Railway variables.
+
+## Email (rental applications)
+The server emails each application to NCN (`MAIL_ADMIN_TO`) and a confirmation to the applicant, sent through
+Microsoft 365 from `MAIL_SENDER` (sonic@ncnelectric.com). Until all five Railway variables are set
+(`MS_TENANT_ID`, `MS_CLIENT_ID`, `MS_CLIENT_SECRET`, `MAIL_SENDER`, `MAIL_ADMIN_TO`) the form shows
+"Online submission unavailable" and nothing is sent.
+- One-time Microsoft 365 setup (NCN admin): `powershell -ExecutionPolicy Bypass -File scripts\setup-m365-mail.ps1`
+- Live test: `railway run node scripts/mail-test.cjs`
+- The client secret expires (24 months by default). Re-run the setup script to rotate it.
