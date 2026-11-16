@@ -1,0 +1,11 @@
+{
+  "name": "ncnelectric-website",
+  "private": true,
+  "version": "1.0.0",
+  "description": "NCN Generator Services website (original ChatGPT build v26), hosted on Railway.",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server.cjs",
+    "test": "node test/smoke.cjs"
+  }
+}

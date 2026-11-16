@@ -1,0 +1,25 @@
+NCN GENERATOR WEBSITE — SHARED EDITING FILES
+Prepared November 13, 2026 for Blythe and Jose.
+
+Live website:
+https://power-generational-service.ncn-electric-9335.chatgpt.site/
+
+The website folder contains the current editable HTML, CSS, JavaScript, images,
+PDF and rental terms. Changes saved in this OneDrive folder do not automatically
+change the live website. Updated files must be tested and published separately.
+
+To edit with Claude, download this folder and use the included source files and
+Claude-Website-Handoff.txt. Keep the current design unless a change is requested.
+
+To preview locally with Node.js: run npm start from this folder, then open
+http://127.0.0.1:8080 . No package installation is required. Browser modules and
+the terms reader need an HTTP server; opening index.html directly is insufficient.
+
+Important: automatic rental-application email submission is NOT enabled.
+Microsoft 365 server-side sending needs TeamLogic approval and implementation.
+Required recipients are bsameit@ncnelectric.com and jalvarenga@ncnelectric.com.
+See Microsoft-365-Email-Setup-for-IT.txt. Do not store passwords or credentials
+inside this shared source folder or browser code.
+
+Acknowledgements are currently stored only on the signer's device and can be
+downloaded/printed. No saved applicant records or browser signatures are included.

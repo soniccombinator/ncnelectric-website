@@ -1,0 +1,65 @@
+NCN ELECTRIC — RENTAL APPLICATION EMAIL SETUP
+Prepared November 12, 2026
+
+REQUEST
+Enable automatic delivery of completed generator rental applications from:
+https://power-generational-service.ncn-electric-9335.chatgpt.site/
+
+Applications must be delivered directly to both:
+  Blythe: bsameit@ncnelectric.com
+  Jose:   jalvarenga@ncnelectric.com
+
+Applicants must remain in the rental app. They must not need to open Outlook,
+sign in to their own Outlook account, or send a draft manually. Use Microsoft
+365 / Exchange Online for email delivery, without a third-party form service.
+
+CURRENT STATUS
+The application form exists. The Outlook-draft-opening behavior has been
+removed. Direct email submission remains disabled until Microsoft 365 sending
+is approved, server-side delivery is connected, and a live test succeeds.
+
+MICROSOFT 365 ADMINISTRATOR ACTION
+1. Identify an approved NCN sending mailbox. A designated service/shared mailbox
+   is preferable if suitable for company policy. Do not use an applicant's email
+   address as the sender; the applicant can be the Reply-To address.
+2. Register a single-tenant Microsoft Entra application for the rental website's
+   server-side email delivery, or provide an existing approved equivalent.
+3. Authorize app-only Microsoft Graph email sending. Prefer Exchange Online
+   Application RBAC with the Application Mail.Send role scoped ONLY to the
+   approved sending mailbox. No mail reading, deletion, or calendar access is
+   needed. Avoid an additional unscoped Entra Mail.Send grant: permissions are
+   additive, and an unscoped grant would defeat the mailbox restriction.
+4. Configure the app's confidential credential using an approved secure process.
+   The deployment implementation can use a client secret held only on the
+   server. Do not email the secret, put it in website files, or paste it into
+   this chat. Use a secure credential handoff or deployment secret store.
+5. Supply these NON-SECRET configuration details to the app deployment owner:
+     - Directory/tenant ID
+     - Application/client ID
+     - Approved sending mailbox address
+     - Confirmation that scoped sending authorization is approved
+   Coordinate the confidential credential separately through the secure process.
+
+DEPLOYMENT WORK AFTER ADMIN AUTHORIZATION
+- Add a server-side submission endpoint to the rental app.
+- Store confidential values as runtime secrets, outside the browser and source.
+- Validate application fields and calculate estimates on the server.
+- Keep BOTH NCN recipient addresses fixed on the server; do not accept arbitrary
+  recipient addresses from browser requests.
+- Send using Microsoft Graph POST /users/{approved-sender}/sendMail.
+- Add submission validation, duplicate protection and abuse controls before
+  enabling the submit button.
+- Show an in-app receipt only after Microsoft accepts the send request. Microsoft
+  acceptance alone is not proof that both inboxes received the message.
+- Send a clearly labeled setup test and verify receipt with Blythe AND Jose.
+- Enable direct submission only after configuration and delivery are verified.
+
+MICROSOFT REFERENCES
+App-only authentication:
+https://learn.microsoft.com/en-us/graph/auth-v2-service
+
+Send mail API:
+https://learn.microsoft.com/en-us/graph/api/user-sendmail?view=graph-rest-1.0
+
+Mailbox-scoped Application RBAC:
+https://learn.microsoft.com/en-us/exchange/permissions-exo/application-rbac
