@@ -1,0 +1,31 @@
+# Claude sessions sometimes have to push to their own branch (claude/...).
+# This tests that branch and merges it into main, which Railway then deploys.
+name: Auto-publish
+on:
+  push:
+    branches: ['claude/**']
+permissions:
+  contents: write
+concurrency:
+  group: auto-publish
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Test the branch
+        run: npm test
+      - name: Merge into main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git checkout main
+          git merge --no-edit "origin/${GITHUB_REF_NAME}"
+          npm test
+          git push origin main
