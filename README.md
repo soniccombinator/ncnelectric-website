@@ -19,11 +19,13 @@ npm test         # site smoke test + form API test
 `npm run dev` gives a live-reload preview of the pages (forms need `npm start`).
 
 ## Email (forms)
-Forms email NCN and send confirmations through Microsoft 365 (Microsoft Graph, app-only, sending from `MAIL_SENDER`).
-Until these Railway variables are set the forms show phone and email instead:
-`MS_TENANT_ID`, `MS_CLIENT_ID`, `MS_CLIENT_SECRET`, `MAIL_SENDER`, `MAIL_ADMIN_TO` (generator team),
-optional `MAIL_GENERAL_TO` (contact/bid and careers; defaults to `MAIL_ADMIN_TO`).
-- One-time Microsoft 365 setup (NCN admin): `powershell -ExecutionPolicy Bypass -File scripts\setup-m365-mail.ps1`
+Forms email NCN and send confirmations through Microsoft 365 from `agent@ncnelectric.com` (`MAIL_SENDER`).
+Recipients: `MAIL_ADMIN_TO` (generator team), optional `MAIL_GENERAL_TO` (contact/bid and careers; defaults to `MAIL_ADMIN_TO`).
+Until email is connected the forms show phone and email instead.
+- **Connect / reconnect** (no admin approval): `node scripts/connect-email.cjs`, then sign in as agent@ncnelectric.com
+  with the code shown. The token is stored in Railway (`MS_REFRESH_TOKEN`), renews itself daily and is kept on the
+  Railway volume (`DATA_DIR=/data`). agent@ must have MFA set up first (NCN's tenant requires it).
+- Alternative if IT ever creates an app registration: `scripts\setup-m365-mail.ps1` (sets `MS_TENANT_ID`, `MS_CLIENT_ID`, `MS_CLIENT_SECRET`).
 - Live test: `railway run node scripts/mail-test.cjs`
 
 ## Known items before relying on legal pages

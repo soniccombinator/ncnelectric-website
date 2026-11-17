@@ -59,10 +59,10 @@ Undo: if someone says "undo that", `git revert <commit>` and publish the same wa
 - **Prices, fees, rental terms or legal pages** (`rental-model.mjs`, `terms.json`, `privacy.astro`, `terms-of-use.astro`):
   repeat the exact change back to the person and get a clear "yes" before publishing. The rental terms are pending
   attorney review; never add internal notes, "counsel should..." text or drafts to public pages.
-- **Forms and email**: forms send email through Microsoft 365 only when the Railway email variables are set
-  (`MS_TENANT_ID`, `MS_CLIENT_ID`, `MS_CLIENT_SECRET`, `MAIL_SENDER`, `MAIL_ADMIN_TO`, optional `MAIL_GENERAL_TO`).
-  Until then forms show "being connected" with phone and email. If someone asks why forms don't work, explain that and
-  tell them to contact Sonic. Never put passwords, keys or recipient lists in website code.
+- **Forms and email**: forms send through Microsoft 365 from agent@ncnelectric.com once it is connected
+  (`node scripts/connect-email.cjs`, run by Sonic; see README). Until then forms show "being connected" with phone and
+  email. If someone asks why forms don't work, explain that and tell them to contact Sonic. Never put passwords, keys or
+  recipient lists in website code.
 - `server.cjs`, `api.cjs`, `mail.cjs`, `redirects.cjs`, `astro.config.mjs`, `package.json`, `railway.json`, `scripts/`,
   `test/` and `.github/` keep the site running. Do not change them for normal content requests.
 - This repository is public. Never add passwords, keys, customer data or internal documents, and only publish staff phone numbers when asked.

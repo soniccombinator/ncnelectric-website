@@ -19,8 +19,12 @@ const security = {
 };
 
 const config = mailConfig();
-const api = createApi({ mailer: config.enabled ? createMailer(config) : null });
-if (require.main === module) console.log(config.enabled ? `Email: on (sending as ${config.sender})` : `Email: off (missing ${config.missing.join(', ')})`);
+const mailer = config.enabled ? createMailer(config) : null;
+const api = createApi({ mailer });
+if (require.main === module) {
+  console.log(config.enabled ? `Email: on (sending as ${config.sender}, ${config.mode} sign-in)` : `Email: off (missing ${config.missing.join(', ')})`);
+  mailer?.keepAlive();
+}
 
 const cache = new Map(); // path -> { body, gzip, br, type }
 function load(file) {

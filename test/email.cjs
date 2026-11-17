@@ -15,6 +15,21 @@ const good={company:'Acme Events',contact:'Pat Lee',email:'pat@example.com',phon
   assert.equal(calls.filter(c=>c.url.includes('/token')).length,1,'token cached');
   assert.ok(calls[1].url.endsWith('/users/sonic%40ncnelectric.com/sendMail'));
 
+  // Signed-in (delegated) mode: refresh-token grant, send as /me, rotated token saved to DATA_DIR and reused.
+  const fs=require('node:fs'),os=require('node:os'),path=require('node:path');
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'ncnmail-'));
+  const denv={MS_REFRESH_TOKEN:'rt-1',MAIL_SENDER:'agent@ncnelectric.com',MAIL_ADMIN_TO:'a@ncnelectric.com',DATA_DIR:dir};
+  const dcfg=mailConfig(denv);assert.equal(dcfg.enabled,true);assert.equal(dcfg.mode,'delegated');assert.equal(dcfg.tenant,'ncnelectric.com');
+  assert.deepEqual(mailConfig({MAIL_SENDER:'agent@ncnelectric.com',MAIL_ADMIN_TO:'a@x.com'}).missing,['MS_REFRESH_TOKEN']);
+  let rtn=1;const dcalls=[];const dfetch=async(url,opts)=>{dcalls.push({url,body:String(opts.body||'')});return url.includes('/token')?{ok:true,status:200,json:async()=>({access_token:'tok',expires_in:3600,refresh_token:'rt-'+(++rtn)})}:{ok:true,status:202,json:async()=>({})}};
+  const dm=createMailer(dcfg,dfetch);await dm.send({to:['x@example.com'],subject:'s',html:'h'});
+  assert.ok(dcalls[0].body.includes('grant_type=refresh_token')&&dcalls[0].body.includes('refresh_token=rt-1'));
+  assert.ok(dcalls[1].url.endsWith('/v1.0/me/sendMail'),'delegated sends as /me');
+  const saved=JSON.parse(fs.readFileSync(path.join(dir,'ms_refresh_token.json'),'utf8'));assert.equal(saved.rt,'rt-2','rotated token saved');
+  const dm2=createMailer(mailConfig(denv),dfetch);await dm2.getToken();assert.ok(dcalls.at(-1).body.includes('refresh_token=rt-2'),'restart reuses saved token');
+  const dm3=createMailer(mailConfig({...denv,MS_REFRESH_TOKEN:'rt-new'}),dfetch);await dm3.getToken();assert.ok(dcalls.at(-1).body.includes('refresh_token=rt-new'),'reconnected variable wins over saved file');
+  fs.rmSync(dir,{recursive:true,force:true});
+
   // API with fake mailer.
   const sent=[];let fail=false;
   const mailer={adminTo:['a@ncnelectric.com','b@ncnelectric.com'],send:async msg=>{if(fail)throw new Error('down');sent.push(msg)}};
