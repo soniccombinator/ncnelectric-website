@@ -1,0 +1,19 @@
+---
+import Base from '../layouts/Base.astro';
+interface Props { title: string; description: string; updated: string }
+const { title, description, updated } = Astro.props;
+---
+<Base title={title} description={description} heroDark={false}>
+  <section class="section legal">
+    <div class="container prose">
+      <span class="eyebrow">Legal</span>
+      <h1>{title}</h1>
+      <p class="muted">Last updated {updated}</p>
+      <slot />
+    </div>
+  </section>
+</Base>
+<style>
+  .legal { padding-top: 140px; }
+  .legal h1 { font-size: clamp(2rem, 4vw, 3rem); }
+</style>

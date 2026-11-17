@@ -1,0 +1,59 @@
+---
+import { Image } from 'astro:assets';
+import { getCollection, render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Icon from '../components/Icon.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { img, hasImg } from '../lib/images';
+// Team members come from src/content/team/*.md (one file per person).
+const people = (await getCollection('team')).sort((a, b) => a.data.order - b.data.order || a.data.name.localeCompare(b.data.name));
+const cards = await Promise.all(people.map(async (p) => ({ ...p.data, id: p.id, Content: (await render(p)).Content, placeholder: (p.body ?? '').trim().toLowerCase().startsWith('bio coming soon') })));
+const initials = (n: string) => n.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+---
+<Base title="Our Team" description="Meet the people behind NCN Electric's four decades of success in Southwest Florida." image="hero/team-at-work.jpg">
+  <PageHero eyebrow="Our team" title="The people behind the power." lead="Licensed professionals, project leaders and the office team that keeps every job moving." image="hero/team-at-work.jpg" position="center 30%" />
+  <section class="section">
+    <div class="container">
+      <div class="team">
+        {cards.map((p, i) => (
+          <article class="member reveal" id={p.id} style={`--d:${(i % 3) * 0.06}s`}>
+            <div class="pic">
+              {p.photo && hasImg(p.photo)
+                ? <Image src={img(p.photo)} alt={p.name} widths={[400, 700]} sizes="(max-width: 700px) 100vw, 33vw" />
+                : <span class="initials" aria-hidden="true">{initials(p.name)}</span>}
+            </div>
+            <div class="info">
+              <h2>{p.name}</h2>
+              {p.title ? <p class="role">{p.title}</p> : <p class="role tbd">Title coming soon</p>}
+              <div class:list={['bio', { tbd: p.placeholder }]}><p.Content /></div>
+              <div class="links">
+                {p.email && <a href={`mailto:${p.email}`} aria-label={`Email ${p.name}`}><Icon name="mail" size={18} /></a>}
+                {p.linkedin && <a href={p.linkedin} target="_blank" rel="noopener" aria-label={`${p.name} on LinkedIn`}><Icon name="linkedin" size={18} /></a>}
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+  <CtaBand title="Want to join this team?" text="We are always looking for great electricians, apprentices and project leaders." primary={{ label: 'View careers', href: '/careers' }} />
+</Base>
+<style>
+  .team { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 28px; }
+  .member { display: flex; flex-direction: column; border-radius: 22px; overflow: hidden; background: #fff; border: 1px solid var(--line); box-shadow: var(--shadow); transition: transform .4s var(--ease), box-shadow .4s; scroll-margin-top: 100px; }
+  .member:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+  .pic { aspect-ratio: 1/1; overflow: hidden; background: radial-gradient(circle at 30% 20%, #4a63d3, var(--navy-900)); display: grid; place-items: center; }
+  .pic :global(img) { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; transition: transform .8s var(--ease); }
+  .member:hover .pic :global(img) { transform: scale(1.05); }
+  .initials { font-family: var(--display); font-variation-settings: 'wdth' 115; font-weight: 800; font-size: 5rem; color: rgba(255,255,255,.9); letter-spacing: .02em; text-shadow: 0 0 40px rgba(92,200,255,.5); }
+  .info { padding: 24px; display: flex; flex-direction: column; flex: 1; }
+  .info h2 { font-size: 1.45rem; margin-bottom: 2px; }
+  .role { color: var(--blue); font-weight: 700; font-size: .9rem; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 12px; }
+  .tbd { color: #9aa0bf !important; font-style: italic; }
+  .bio { color: var(--muted); font-size: .96rem; flex: 1; }
+  .bio :global(p) { margin: 0 0 .8em; }
+  .links { display: flex; gap: 10px; }
+  .links a { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: var(--bg); color: var(--navy); }
+  .links a:hover { background: var(--navy); color: #fff; }
+</style>

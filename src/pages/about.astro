@@ -1,0 +1,94 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Icon from '../components/Icon.astro';
+import Testimonials from '../components/Testimonials.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { img } from '../lib/images';
+import { site } from '../lib/site';
+const now = new Date().getFullYear();
+// Timeline milestones. Add or edit entries here; years are shown in order.
+const timeline = [
+  { year: '1982', title: 'NCN Electric is founded', text: 'A commercial electrical contractor rooted in Southwest Florida.' },
+  { year: '1998', title: 'Jupiter spring training stadium', text: 'Electrical for a 6,871-seat stadium with seven practice fields and 137-foot light poles.' },
+  { year: 'Landmarks', title: 'Building the region', text: "Riverview High School, University Town Center, the SRQ air traffic control tower, the Sarasota County Emergency Operations Center, Sarasota Memorial's oncology tower and more." },
+  { year: '2020', title: 'New leadership', text: 'U.S. Navy veteran Paul Sameit leads NCN into a new era of growth and modernization.' },
+  { year: 'Today', title: 'NCN Generator Services', text: 'Turnkey temporary power for events and job sites, backed by four decades of electrical expertise.' },
+];
+const values = [
+  { icon: 'heart', t: 'Relationships first', d: 'Clients come back to NCN project after project. We earn that with personal service and attention to detail.' },
+  { icon: 'shield', t: 'Quality you can trust', d: 'Creative problem solving, detailed planning, and licensed electricians and project managers on every job.' },
+  { icon: 'calendar', t: 'On time, on budget', d: 'We surge key manpower at critical points of construction so your schedule holds.' },
+  { icon: 'users', t: 'Rooted in community', d: 'Our people live here. NCN is in the fiber of every community we work in.' },
+];
+---
+<Base title="About NCN Electric" description="Since 1982, NCN Electric has been a licensed, veteran-owned commercial and industrial electrical contractor serving Southwest Florida's top general contractors." image="hero/team-at-work.jpg">
+  <PageHero eyebrow="About NCN" title="Serving Southwest Florida for 40+ years." lead="At our core, NCN is about relationships: with our clients, our general contractor partners and the communities we help build." image="hero/team-at-work.jpg" position="center 30%" />
+
+  <section class="section">
+    <div class="container split">
+      <div class="reveal">
+        <span class="eyebrow">Our story</span>
+        <h2>Why the best general contractors in Florida turn to NCN.</h2>
+        <p>NCN Electric is a licensed and certified commercial and industrial electrical contractor. Since {site.founded}, we have served the complex needs of large commercial projects, and earned a reputation for excellence through the diversity of our work and our understanding of the challenges each project poses.</p>
+        <p>As a veteran-owned small business, we value every client's experience. Our work includes the Walmart Supercenter in Bradenton, the VA nursing home in Port Charlotte, Prime Outlets in Ellenton, the SRQ air traffic control tower and many more.</p>
+        <div class="kpis">
+          <div><strong><span data-count={now - site.founded}>{now - site.founded}</span>+</strong><span>years</span></div>
+          <div><strong>2</strong><span>offices</span></div>
+          <div><strong>12</strong><span>sectors</span></div>
+        </div>
+      </div>
+      <div class="stack-photos reveal" style="--d:.1s">
+        <div class="photo a"><Image src={img('sectors/healthcare.jpg')} alt="Sarasota Memorial oncology center" widths={[600]} /></div>
+        <div class="photo b"><Image src={img('hero/srq-tower.jpg')} alt="SRQ control tower" widths={[600]} /></div>
+        <div class="vet"><Image src={img('badges/sdvosb.png')} alt="Service-Disabled Veteran-Owned Small Business" width={110} height={110} /></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section bg-navy">
+    <div class="container">
+      <div class="section-head center reveal"><span class="eyebrow">Our journey</span><h2>Four decades of powering progress.</h2></div>
+      <ol class="timeline">
+        {timeline.map((t, i) => (
+          <li class="reveal" style={`--d:${i * 0.05}s`}><span class="yr">{t.year}</span><div class="tl-card"><h3>{t.title}</h3><p>{t.text}</p></div></li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head center reveal"><span class="eyebrow">What we stand for</span><h2>Quality. Integrity. Professionalism.</h2></div>
+      <div class="grid grid-4">
+        {values.map((v, i) => <div class="card lift reveal" style={`--d:${i * 0.06}s`}><span class="ic"><Icon name={v.icon} /></span><h3>{v.t}</h3><p class="muted">{v.d}</p></div>)}
+      </div>
+      <div class="btn-row center-row reveal"><a class="btn btn-dark" href="/team">Meet the team <span class="arrow">&rarr;</span></a><a class="btn btn-outline" href="/careers">Join us</a></div>
+    </div>
+  </section>
+  <Testimonials />
+  <CtaBand />
+</Base>
+<style>
+  .kpis { display: flex; gap: 14px; margin-top: 24px; flex-wrap: wrap; }
+  .kpis div { flex: 1; min-width: 110px; padding: 18px; border-radius: 16px; background: var(--bg); border: 1px solid var(--line); }
+  .kpis strong { display: block; font-family: var(--display); font-size: 2.2rem; color: var(--navy); line-height: 1; }
+  .kpis span { color: var(--muted); font-size: .9rem; }
+  .stack-photos { position: relative; min-height: 480px; }
+  .stack-photos .photo { position: absolute; }
+  .stack-photos .a { width: 70%; top: 0; right: 0; aspect-ratio: 4/3; }
+  .stack-photos .b { width: 62%; bottom: 0; left: 0; aspect-ratio: 4/3; border: 6px solid #fff; }
+  .vet { position: absolute; right: 8%; bottom: 6%; background: #fff; border-radius: 50%; padding: 6px; box-shadow: var(--shadow-lg); }
+  @media (max-width: 560px) { .stack-photos { min-height: 340px; } }
+  .timeline { list-style: none; margin: 0 auto; padding: 0; max-width: 860px; position: relative; }
+  .timeline::before { content: ''; position: absolute; left: 122px; top: 6px; bottom: 6px; width: 2px; background: linear-gradient(180deg, var(--electric), var(--blue), var(--amber)); box-shadow: 0 0 16px var(--electric); }
+  .timeline li { display: grid; grid-template-columns: 110px 1fr; gap: 40px; margin-bottom: 22px; position: relative; }
+  .timeline li::before { content: ''; position: absolute; left: 116px; top: 22px; width: 14px; height: 14px; border-radius: 50%; background: var(--electric); box-shadow: 0 0 0 5px rgba(92,200,255,.2), 0 0 18px var(--electric); }
+  .yr { font-family: var(--display); font-weight: 800; color: #fff; font-size: 1.2rem; padding-top: 14px; text-align: right; }
+  .tl-card { padding: 18px 22px; border-radius: 16px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); }
+  .tl-card h3 { margin-bottom: 4px; } .tl-card p { margin: 0; color: #b9bddb; }
+  @media (max-width: 560px) { .timeline::before { left: 7px; } .timeline li { grid-template-columns: 1fr; gap: 6px; padding-left: 30px; } .timeline li::before { left: 1px; top: 6px; } .yr { text-align: left; padding-top: 0; } }
+  .ic { display: inline-grid; place-items: center; width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg, var(--navy), var(--blue)); color: #fff; margin-bottom: 16px; }
+  .center-row { justify-content: center; margin-top: 40px; }
+</style>

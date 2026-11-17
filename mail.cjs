@@ -2,7 +2,8 @@
 // Configuration comes only from environment variables (Railway variables in production):
 //   MS_TENANT_ID, MS_CLIENT_ID, MS_CLIENT_SECRET  Entra app registration (secret stays on the server)
 //   MAIL_SENDER                                    mailbox the site sends from, e.g. sonic@ncnelectric.com
-//   MAIL_ADMIN_TO                                  comma-separated NCN recipients for application alerts
+//   MAIL_ADMIN_TO                                  comma-separated NCN recipients for generator alerts (Blythe, Jose)
+//   MAIL_GENERAL_TO (optional)                     recipients for contact/bid and careers forms; defaults to MAIL_ADMIN_TO
 const REQUIRED = ['MS_TENANT_ID', 'MS_CLIENT_ID', 'MS_CLIENT_SECRET', 'MAIL_SENDER', 'MAIL_ADMIN_TO'];
 
 function mailConfig(env = process.env) {
@@ -15,6 +16,7 @@ function mailConfig(env = process.env) {
     secret: env.MS_CLIENT_SECRET.trim(),
     sender: env.MAIL_SENDER.trim(),
     adminTo: env.MAIL_ADMIN_TO.split(',').map(s => s.trim()).filter(Boolean),
+    generalTo: String(env.MAIL_GENERAL_TO || '').split(',').map(s => s.trim()).filter(Boolean),
   };
 }
 
@@ -33,13 +35,14 @@ function createMailer(config, fetchImpl = fetch) {
     return token;
   }
   // to: array of addresses. html: full HTML body. replyTo: optional address.
-  async function send({ to, subject, html, replyTo }) {
+  async function send({ to, subject, html, replyTo, attachments }) {
     const message = {
       subject,
       body: { contentType: 'HTML', content: html },
       toRecipients: to.map(address => ({ emailAddress: { address } })),
     };
     if (replyTo) message.replyTo = [{ emailAddress: { address: replyTo } }];
+    if (attachments && attachments.length) message.attachments = attachments.map(a => ({ '@odata.type': '#microsoft.graph.fileAttachment', name: a.name, contentType: a.type, contentBytes: a.content }));
     const r = await fetchImpl(`https://graph.microsoft.com/v1.0/users/${encodeURIComponent(config.sender)}/sendMail`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${await getToken()}`, 'Content-Type': 'application/json' },
@@ -50,7 +53,7 @@ function createMailer(config, fetchImpl = fetch) {
       throw new Error(`Microsoft did not accept the email (${r.status} ${detail.error?.code || ''})`.trim());
     }
   }
-  return { send, adminTo: config.adminTo, sender: config.sender };
+  return { send, adminTo: config.adminTo, generalTo: config.generalTo, sender: config.sender };
 }
 
 module.exports = { mailConfig, createMailer };

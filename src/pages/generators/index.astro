@@ -1,0 +1,231 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import PowerPlanner from '../../components/PowerPlanner.astro';
+import ServiceRadar from '../../components/ServiceRadar.astro';
+import LeadForm from '../../components/LeadForm.astro';
+import { img } from '../../lib/images';
+import { site } from '../../lib/site';
+import { rates, fees } from '../../lib/rental-model.mjs';
+import { generatorFaq } from '../../data/content';
+
+const lineup = [
+  { kw: 10, name: 'Small, flexible power', image: 'generators/flyer-10kw.png', good: ['Small trailer with one A/C, refrigerator and lights', 'DJ, small PA, registration or vendor support'], phase: 'Single- and three-phase' },
+  { kw: 30, name: 'Versatile event power', image: 'generators/flyer-30kw.png', good: ['Medium trailer with multiple A/C units', 'Small outdoor stage, vendors or catering'], phase: 'Three-phase available', popular: true },
+  { kw: 60, name: 'Production power', image: 'generators/flyer-60kw.png', good: ['Small-to-medium concert production', 'Production trailers, catering and multi-tent zones'], phase: 'Three-phase available' },
+].map((g) => ({ ...g, ...rates.find((r: { kw: number }) => r.kw === g.kw) }));
+const money = (n: number) => `$${n.toLocaleString('en-US')}`;
+const steps = [
+  { icon: 'calendar', t: 'Tell us about your event', d: 'Use the Power Planner or send a quick request. We confirm size, date and site details.' },
+  { icon: 'truck', t: 'We deliver and connect', d: 'NCN delivers the generator and our licensed electricians make the connection and ground it.' },
+  { icon: 'power', t: 'Startup and support', d: 'We start, test and walk you through operation. Fueling and monitoring are available.' },
+  { icon: 'check', t: 'We pick it up', d: 'When the event ends we disconnect and haul it away. You focus on your guests.' },
+];
+const faqLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: generatorFaq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<Base title="Generator Rentals for Events & Temporary Power" description="Turnkey diesel generator rentals in Southwest Florida: 10, 30 and 60 kW with delivery, licensed connection, startup and pickup. Event packages from $350." image="generators/flyer-event.png">
+  <script type="application/ld+json" set:html={JSON.stringify(faqLd)} />
+
+  <section class="g-hero">
+    <div class="glow g1" aria-hidden="true"></div><div class="glow g2" aria-hidden="true"></div>
+    <div class="container gh-inner">
+      <div class="gh-copy">
+        <span class="eyebrow">NCN Generator Services</span>
+        <h1>You plan the event. <span class="spark">We power it.</span></h1>
+        <p class="lead">Turnkey diesel power for weddings, festivals, food trucks, stages and job sites. One licensed electrical contractor handles delivery, connection, startup and pickup.</p>
+        <div class="btn-row"><a class="btn btn-primary" href="#planner">Plan my power <span class="arrow">&rarr;</span></a><a class="btn btn-ghost" href="#quote">Get a quote</a></div>
+        <ul class="ticks">
+          <li><Icon name="check" size={18} /> Licensed connection ({site.license})</li>
+          <li><Icon name="check" size={18} /> Delivery & pickup</li>
+          <li><Icon name="check" size={18} /> Trusted since {site.founded}</li>
+        </ul>
+      </div>
+      <div class="gh-art">
+        <div class="frame"><Image src={img('generators/flyer-event.png')} alt="Evening event under a tent lit with string lights" widths={[519]} loading="eager" /></div>
+        <div class="badge"><small>Event package from</small><strong>$350</strong><small>10 kW + delivery & setup</small></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="lineup">
+    <div class="container">
+      <div class="section-head center reveal"><span class="eyebrow">The lineup</span><h2>Pick your power.</h2><p class="lead">Generator-only base rates. Delivery, setup and pickup are one simple fee for events, and included on active NCN projects.</p></div>
+      <div class="lineup">
+        {lineup.map((g, i) => (
+          <article class:list={['gen', 'reveal', { popular: g.popular }]} style={`--d:${i * 0.08}s`}>
+            {g.popular && <span class="flag">Most popular</span>}
+            <div class="gpic"><Image src={img(g.image)} alt={`${g.kw} kW diesel generator powering an event`} widths={[300]} /></div>
+            <div class="gbody">
+              <h3>{g.kw} kW Diesel</h3>
+              <p class="gname">{g.name}</p>
+              <div class="rate"><strong>{money(g.daily)}</strong><span>/ day</span></div>
+              <p class="alt">{money(g.weekly)} / week · {money(g.monthly)} / month</p>
+              <ul>{g.good.map((x) => <li><Icon name="check" size={16} /> {x}</li>)}<li><Icon name="check" size={16} /> {g.phase}</li></ul>
+              <a class="btn btn-outline full" href="#planner">Size my event</a>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section planner-sec" id="planner">
+    <div class="container">
+      <div class="section-head center reveal"><span class="eyebrow">Power Planner</span><h2>Not sure what size you need?</h2><p class="lead">Tap what you're powering. We'll recommend a generator and estimate your price in seconds.</p></div>
+      <PowerPlanner />
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head center reveal"><span class="eyebrow">How it works</span><h2>One contractor. One call. Zero guesswork.</h2></div>
+      <ol class="steps">
+        {steps.map((s, i) => <li class="reveal" style={`--d:${i * 0.08}s`}><span class="sic"><Icon name={s.icon} size={26} /></span><span class="snum">Step {i + 1}</span><h3>{s.t}</h3><p>{s.d}</p></li>)}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section bg-soft">
+    <div class="container split">
+      <div class="reveal">
+        <span class="eyebrow">Transparent pricing</span>
+        <h2>No surprises on the invoice.</h2>
+        <p class="lead">Every fee is published. Your final quote confirms the details before anything is booked.</p>
+        <a class="btn btn-dark" href="/generators/terms">Read the rental terms <span class="arrow">&rarr;</span></a>
+      </div>
+      <dl class="fees reveal" style="--d:.08s">
+        <div><dt><Icon name="truck" /> Event delivery, setup & pickup</dt><dd>${fees.eventSetup} within {fees.includedMiles} driving miles</dd></div>
+        <div><dt><Icon name="map" /> Extra distance</dt><dd>${fees.mileage} per one-way mile beyond {fees.includedMiles}; custom quote beyond {fees.customQuoteMiles}</dd></div>
+        <div><dt><Icon name="clock" /> Run time</dt><dd>Up to {fees.includedOperatingHours} operating hours per day; extra hours at 10% of the daily rate</dd></div>
+        <div><dt><Icon name="fuel" /> Fuel</dt><dd>Return full, or NCN supplies diesel at cost plus ${fees.fuelMargin} per gallon</dd></div>
+        <div><dt><Icon name="plug" /> Standard connection</dt><dd>One connection, grounding, startup and testing, up to {fees.includedLaborHours} electrician hours</dd></div>
+        <div><dt><Icon name="hardhat" /> Active NCN projects</dt><dd>Standard delivery, pickup and setup included when stated in your quote</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="section bg-navy" id="area">
+    <div class="container">
+      <div class="section-head reveal"><span class="eyebrow">Service area</span><h2>Powering events across Southwest Florida.</h2></div>
+      <ServiceRadar />
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container faq-wrap">
+      <div class="reveal"><span class="eyebrow">FAQ</span><h2>Good questions.</h2><p class="lead">Don't see yours? Call <a href={site.phoneHref}>{site.phone}</a>.</p></div>
+      <div class="faq">
+        {generatorFaq.map((f, i) => <details class="reveal" style={`--d:${(i % 4) * 0.04}s`}><summary>{f.q}<span aria-hidden="true">+</span></summary><p>{f.a}</p></details>)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section bg-soft" id="quote">
+    <div class="container quote-grid">
+      <div class="reveal">
+        <span class="eyebrow">Get a quote</span>
+        <h2>Tell us what you need.</h2>
+        <p class="lead">Send a quick request and our generator team will confirm availability and pricing.</p>
+        <div class="people">
+          {site.generators.contacts.map((c) => (
+            <div class="person"><span class="av">{c.name[0]}</span><div><strong>{c.name}</strong><a href={`mailto:${c.email}`}>{c.email}</a><a href={c.phoneHref}>{c.phone}</a></div></div>
+          ))}
+        </div>
+        <div class="more-links">
+          <a href="/generators/apply"><Icon name="blueprint" size={18} /> Full rental application</a>
+          <a href="/NCN-Generator-Services.pdf" target="_blank" rel="noopener"><Icon name="download" size={18} /> Download brochure (PDF)</a>
+        </div>
+      </div>
+      <div class="card form-card reveal" style="--d:.08s"><LeadForm kind="generator" /></div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .g-hero { position: relative; overflow: hidden; color: #fff; background: var(--navy-950); padding: 150px 0 90px; }
+  .glow { position: absolute; border-radius: 50%; filter: blur(10px); pointer-events: none; }
+  .g1 { width: 760px; height: 760px; left: -240px; top: -320px; background: radial-gradient(circle, rgba(74,99,211,.55), transparent 65%); }
+  .g2 { width: 700px; height: 700px; right: -200px; bottom: -380px; background: radial-gradient(circle, rgba(255,176,32,.3), transparent 65%); }
+  .gh-inner { position: relative; display: grid; grid-template-columns: 1.05fr 1fr; gap: 56px; align-items: center; }
+  @media (max-width: 960px) { .gh-inner { grid-template-columns: 1fr; } }
+  .g-hero h1 { color: #fff; max-width: 13ch; }
+  .g-hero .eyebrow { color: var(--electric); }
+  .g-hero .lead { color: #c9cdea; }
+  .spark { background: linear-gradient(90deg, var(--amber), #ffd37a, var(--electric), var(--amber)); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 7s linear infinite; }
+  @keyframes shimmer { to { background-position: -300% 0; } }
+  .ticks { list-style: none; padding: 0; margin: 28px 0 0; display: flex; flex-wrap: wrap; gap: 10px 22px; color: #c9cdea; font-size: .95rem; }
+  .ticks li { display: inline-flex; align-items: center; gap: 8px; }
+  .ticks :global(svg) { color: var(--electric); }
+  .gh-art { position: relative; }
+  .frame { border-radius: 26px; overflow: hidden; transform: perspective(1200px) rotateY(-8deg) rotateX(3deg); box-shadow: 0 40px 100px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.08); transition: transform .8s var(--ease); }
+  .gh-art:hover .frame { transform: none; }
+  .frame :global(img) { width: 100%; aspect-ratio: 16/10; object-fit: cover; }
+  .badge { position: absolute; left: -18px; bottom: -28px; display: grid; padding: 18px 22px; border-radius: 18px; background: var(--amber); color: var(--navy-950); box-shadow: 0 20px 50px rgba(255,176,32,.4); animation: float 5s ease-in-out infinite; }
+  .badge strong { font-family: var(--display); font-variation-settings: 'wdth' 112; font-size: 2.6rem; line-height: 1; }
+  .badge small { font-weight: 600; font-size: .8rem; }
+  @keyframes float { 50% { transform: translateY(-8px); } }
+  @media (max-width: 560px) { .badge { left: 12px; } }
+
+  .lineup { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; align-items: stretch; }
+  @media (max-width: 960px) { .lineup { grid-template-columns: 1fr; max-width: 520px; margin-inline: auto; } }
+  .gen { position: relative; display: flex; flex-direction: column; border-radius: 24px; background: #fff; border: 1px solid var(--line); box-shadow: var(--shadow); overflow: hidden; transition: transform .4s var(--ease), box-shadow .4s; }
+  .gen:hover { transform: translateY(-8px); box-shadow: var(--shadow-lg); }
+  .gen.popular { border: 2px solid var(--blue); box-shadow: 0 20px 60px rgba(74,99,211,.25); }
+  .flag { position: absolute; z-index: 2; top: 14px; right: 14px; padding: 6px 12px; border-radius: 99px; background: var(--blue); color: #fff; font-size: .75rem; font-weight: 700; letter-spacing: .04em; }
+  .gpic { aspect-ratio: 16/11; overflow: hidden; background: #eef2fb; }
+  .gpic :global(img) { width: 100%; height: 100%; object-fit: cover; transition: transform .8s var(--ease); }
+  .gen:hover .gpic :global(img) { transform: scale(1.06); }
+  .gbody { padding: 24px; display: flex; flex-direction: column; flex: 1; }
+  .gbody h3 { font-size: 1.7rem; margin: 0; }
+  .gname { color: var(--blue); font-weight: 700; font-size: .85rem; letter-spacing: .1em; text-transform: uppercase; margin: 4px 0 14px; }
+  .rate strong { font-family: var(--display); font-variation-settings: 'wdth' 112; font-size: 2.8rem; color: var(--navy); }
+  .rate span { color: var(--muted); font-weight: 600; }
+  .alt { color: var(--muted); font-size: .9rem; margin: 0 0 14px; }
+  .gbody ul { list-style: none; padding: 0; margin: 0 0 20px; display: grid; gap: 8px; flex: 1; }
+  .gbody li { display: flex; gap: 8px; font-size: .94rem; }
+  .gbody li :global(svg) { flex: none; color: var(--blue); margin-top: 3px; }
+  .full { width: 100%; }
+
+  .planner-sec { background: radial-gradient(900px 500px at 50% 0%, rgba(74,99,211,.35), transparent 60%), var(--navy-900); }
+  .planner-sec h2 { color: #fff; } .planner-sec .lead { color: #c5c9e6; } .planner-sec .eyebrow { color: var(--electric); }
+
+  .steps { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; position: relative; }
+  .steps::before { content: ''; position: absolute; left: 6%; right: 6%; top: 36px; height: 2px; background: linear-gradient(90deg, var(--blue), var(--electric), var(--amber)); opacity: .5; }
+  @media (max-width: 900px) { .steps { grid-template-columns: 1fr 1fr; } .steps::before { display: none; } }
+  @media (max-width: 520px) { .steps { grid-template-columns: 1fr; } }
+  .steps li { position: relative; text-align: center; padding: 0 8px; }
+  .sic { display: inline-grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: #fff; color: var(--navy); border: 2px solid var(--line); box-shadow: var(--shadow); position: relative; }
+  .snum { display: block; margin: 16px 0 4px; font-size: .75rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--blue); }
+  .steps h3 { font-size: 1.1rem; }
+  .steps p { color: var(--muted); font-size: .95rem; }
+
+  .fees { margin: 0; display: grid; gap: 12px; }
+  .fees div { display: grid; grid-template-columns: 1fr 1.2fr; gap: 16px; padding: 18px 20px; background: #fff; border-radius: 16px; border: 1px solid var(--line); }
+  @media (max-width: 560px) { .fees div { grid-template-columns: 1fr; gap: 6px; } }
+  .fees dt { display: flex; gap: 10px; align-items: center; font-weight: 700; color: var(--navy-900); }
+  .fees dt :global(svg) { color: var(--blue); flex: none; }
+  .fees dd { margin: 0; color: var(--muted); }
+
+  .faq-wrap { display: grid; grid-template-columns: 1fr 1.6fr; gap: 48px; }
+  @media (max-width: 900px) { .faq-wrap { grid-template-columns: 1fr; } }
+  .faq { display: grid; gap: 12px; }
+  details { border: 1px solid var(--line); border-radius: 16px; background: #fff; transition: box-shadow .3s, border-color .3s; }
+  details[open] { box-shadow: var(--shadow); border-color: #cfd3ea; }
+  summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; gap: 16px; padding: 20px 22px; font-weight: 700; color: var(--navy-900); }
+  summary::-webkit-details-marker { display: none; }
+  summary span { font-size: 1.4rem; line-height: 1; color: var(--blue); transition: transform .3s; }
+  details[open] summary span { transform: rotate(45deg); }
+  details p { padding: 0 22px 20px; margin: 0; color: var(--muted); }
+
+  .quote-grid { display: grid; grid-template-columns: 1fr 1.25fr; gap: 48px; align-items: start; scroll-margin-top: 80px; }
+  @media (max-width: 900px) { .quote-grid { grid-template-columns: 1fr; } }
+  .people { display: grid; gap: 14px; margin: 24px 0; }
+  .person { display: flex; gap: 14px; align-items: center; padding: 16px; background: #fff; border-radius: 16px; border: 1px solid var(--line); }
+  .person div { display: grid; }
+  .person a { font-size: .92rem; text-decoration: none; }
+  .av { flex: none; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--navy), var(--blue)); color: #fff; font-weight: 800; font-size: 1.2rem; }
+  .more-links { display: grid; gap: 10px; }
+  .more-links a { display: inline-flex; gap: 8px; align-items: center; font-weight: 700; text-decoration: none; }
+  .form-card { padding: clamp(22px, 3vw, 36px); }
+</style>

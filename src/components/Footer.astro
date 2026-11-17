@@ -1,0 +1,68 @@
+---
+import { Image } from 'astro:assets';
+import Icon from './Icon.astro';
+import { site } from '../lib/site';
+import { img } from '../lib/images';
+import { badges } from '../data/content';
+const year = new Date().getFullYear();
+---
+<footer class="footer">
+  <div class="glow" aria-hidden="true"></div>
+  <div class="container">
+    <div class="top">
+      <div class="about">
+        <a href="/" class="brand"><Image src={img('brand/logo.png')} alt="NCN Electric logo" width={64} height={64} /><span><strong>NCN Electric</strong><small>{site.tagline}</small></span></a>
+        <p>Licensed commercial and industrial electrical contractor. Veteran owned. Trusted by Southwest Florida's best general contractors since {site.founded}.</p>
+        <p class="lic"><Icon name="shield" size={18} /> License {site.license}</p>
+      </div>
+      <div>
+        <h3>Company</h3>
+        <ul><li><a href="/about">About NCN</a></li><li><a href="/team">Our Team</a></li><li><a href="/careers">Careers</a></li><li><a href="/projects">Projects</a></li><li><a href="/contact">Contact</a></li></ul>
+      </div>
+      <div>
+        <h3>What we do</h3>
+        <ul><li><a href="/services">Commercial Electrical</a></li><li><a href="/sectors">Sectors</a></li><li><a href="/generators">Generator Rentals</a></li><li><a href="/generators#planner">Power Planner</a></li><li><a href="/contact#quote">Request a Bid</a></li></ul>
+      </div>
+      <div>
+        <h3>Get in touch</h3>
+        <ul class="contact">
+          <li><Icon name="phone" size={18} /><a href={site.phoneHref}>{site.phone}</a></li>
+          <li><Icon name="mail" size={18} /><a href={`mailto:${site.email}`}>{site.email}</a></li>
+          {site.offices.map((o) => <li><Icon name="pin" size={18} /><a href={o.map} target="_blank" rel="noopener">{o.street}<br />{o.city}, {o.state} {o.zip}</a></li>)}
+          <li><Icon name="clock" size={18} /><span>{site.hours}</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="badges" aria-label="Certifications and memberships">
+      {badges.map((b) => <Image src={img(b.logo)} alt={b.name} height={64} width={Math.round(64 * img(b.logo).width / img(b.logo).height)} />)}
+    </div>
+    <div class="bottom">
+      <span>&copy; {year} {site.legalName}. All rights reserved.</span>
+      <nav aria-label="Legal"><a href="/privacy">Privacy</a><a href="/terms-of-use">Terms of Use</a><a href="/accessibility">Accessibility</a><a href={site.linkedin} target="_blank" rel="noopener" aria-label="NCN Electric on LinkedIn"><Icon name="linkedin" size={18} /></a></nav>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer { position: relative; overflow: hidden; background: var(--navy-950); color: #b9bddb; padding: 80px 0 110px; font-size: .95rem; }
+  @media (min-width: 900px) { .footer { padding-bottom: 32px; } }
+  .glow { position: absolute; width: 700px; height: 700px; right: -200px; top: -300px; background: radial-gradient(circle, rgba(74,99,211,.35), transparent 65%); pointer-events: none; }
+  .top { position: relative; display: grid; grid-template-columns: 1.6fr 1fr 1fr 1.4fr; gap: 40px; }
+  @media (max-width: 900px) { .top { grid-template-columns: 1fr 1fr; } .about { grid-column: 1 / -1; } }
+  @media (max-width: 520px) { .top { grid-template-columns: 1fr; } }
+  .brand { display: flex; gap: 14px; align-items: center; text-decoration: none; color: #fff; margin-bottom: 18px; }
+  .brand :global(img) { border-radius: 50%; background: #fff; }
+  .brand strong { display: block; font-family: var(--display); font-variation-settings: 'wdth' 112; font-size: 1.4rem; }
+  .brand small { color: #9ea3c9; }
+  .lic { display: inline-flex; gap: 8px; align-items: center; color: var(--electric); font-weight: 600; }
+  h3 { color: #fff; font-size: .8rem; letter-spacing: .16em; text-transform: uppercase; margin-bottom: 16px; }
+  ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  a { color: #d7daf0; text-decoration: none; }
+  a:hover { color: #fff; text-decoration: underline; }
+  .contact li { display: flex; gap: 10px; align-items: flex-start; }
+  .contact :global(svg) { flex: none; margin-top: 3px; color: var(--electric); }
+  .badges { display: flex; flex-wrap: wrap; align-items: center; gap: 28px; margin: 48px 0 32px; padding: 24px 28px; background: rgba(255,255,255,.96); border-radius: var(--radius); }
+  .badges :global(img) { height: 56px; width: auto; }
+  .bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,.1); font-size: .85rem; }
+  .bottom nav { display: flex; gap: 20px; align-items: center; }
+</style>

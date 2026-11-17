@@ -1,0 +1,76 @@
+---
+// Service-area "radar": cities plotted by real distance and direction from NCN's Venice headquarters.
+const HQ = { lat: 27.0998, lon: -82.4543 };
+const cities = [
+  ['Sarasota', 27.3364, -82.5307], ['North Port', 27.0442, -82.2359], ['Port Charlotte', 26.9762, -82.0906],
+  ['Lakewood Ranch', 27.42, -82.4], ['Bradenton', 27.4989, -82.5748], ['Arcadia', 27.2159, -81.8584],
+  ['Parrish', 27.587, -82.4246], ['Fort Myers', 26.6406, -81.8723], ['Cape Coral', 26.5629, -81.9495], ['St. Petersburg', 27.7676, -82.6403],
+  ['Tampa', 27.9506, -82.4572], ['Naples', 26.142, -81.7948], ['Lakeland', 28.0395, -81.9498], ['Sebring', 27.4956, -81.4409],
+] as const;
+const MAX = 90, S = 240 / MAX; // svg radius 240 = 90 miles; cities beyond are pinned to the edge
+const R = 3958.8, rad = (d: number) => (d * Math.PI) / 180;
+const pts = cities.map(([name, lat, lon]) => {
+  const dLat = rad(lat - HQ.lat), dLon = rad(lon - HQ.lon);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(rad(HQ.lat)) * Math.cos(rad(lat)) * Math.sin(dLon / 2) ** 2;
+  const miles = 2 * R * Math.asin(Math.sqrt(a));
+  const x = (lon - HQ.lon) * Math.cos(rad(HQ.lat)) * 69.17, y = (lat - HQ.lat) * 69.17;
+  const k = miles > MAX ? MAX / miles : 1;
+  return { name, miles, x: x * k, y: y * k };
+});
+const zone = (m: number) => (m <= 40 ? 'in' : m <= 85 ? 'mid' : 'out');
+---
+<div class="radar-wrap">
+  <svg viewBox="-280 -270 560 540" class="radar" role="img" aria-label="Map of delivery zones around Venice, Florida">
+    <defs>
+      <radialGradient id="rg"><stop offset="0" stop-color="#5cc8ff" stop-opacity=".25" /><stop offset="1" stop-color="#5cc8ff" stop-opacity="0" /></radialGradient>
+      <linearGradient id="sweep" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5cc8ff" stop-opacity="0" /><stop offset="1" stop-color="#5cc8ff" stop-opacity=".45" /></linearGradient>
+    </defs>
+    <circle r={85 * S} class="z-mid" /><circle r={40 * S} class="z-in" />
+    <circle r={90 * S} class="ring" /><circle r={85 * S} class="ring" /><circle r={40 * S} class="ring" />
+    <line x1="-240" y1="0" x2="240" y2="0" class="axis" /><line x1="0" y1="-240" x2="0" y2="240" class="axis" />
+    <g class="sweep"><path d={`M0 0 L${240} 0 A240 240 0 0 0 ${240 * Math.cos(-0.6)} ${240 * Math.sin(-0.6)} Z`} fill="url(#sweep)" /></g>
+    <text x={-40 * S * 0.71 - 6} y={40 * S * 0.71 + 14} class="rl" text-anchor="end">40 mi</text><text x={-85 * S * 0.71 - 6} y={85 * S * 0.71 + 14} class="rl" text-anchor="end">85 mi</text>
+    {pts.map((p, i) => (
+      <g class={`city ${zone(p.miles)}`} transform={`translate(${(p.x * S).toFixed(1)} ${(-p.y * S).toFixed(1)})`} style={`--i:${i}`}>
+        <circle r="5" /><circle r="5" class="ping" />
+        <text x={p.x > 0 ? 9 : -9} y="4" text-anchor={p.x > 0 ? 'start' : 'end'}>{p.name}</text>
+      </g>
+    ))}
+    <g class="hq"><circle r="11" /><circle r="11" class="ping" /><text y="-18" text-anchor="middle">Venice HQ</text></g>
+    <text x="-270" y="-252" class="n">N ↑</text>
+  </svg>
+  <ul class="legend">
+    <li><span class="dot in"></span><div><strong>Within 40 miles</strong><span>Delivery and setup included in the $250 event fee</span></div></li>
+    <li><span class="dot mid"></span><div><strong>40 to 85 miles</strong><span>Add $5 per one-way driving mile beyond 40</span></div></li>
+    <li><span class="dot out"></span><div><strong>Beyond 85 miles</strong><span>Custom quote</span></div></li>
+    <li class="note">Map shows straight-line distance; fees use actual driving miles.</li>
+  </ul>
+</div>
+<style>
+  .radar-wrap { display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px; align-items: center; }
+  @media (max-width: 900px) { .radar-wrap { grid-template-columns: 1fr; } }
+  .radar { width: 100%; max-width: 560px; margin-inline: auto; overflow: visible; }
+  .z-mid { fill: rgba(255,176,32,.08); } .z-in { fill: url(#rg); }
+  .ring { fill: none; stroke: rgba(92,200,255,.35); stroke-dasharray: 4 6; }
+  .axis { stroke: rgba(255,255,255,.08); }
+  .rl { fill: #8f95c2; font-size: 11px; font-weight: 700; }
+  .n { fill: #8f95c2; font-size: 12px; font-weight: 700; }
+  .sweep { transform-origin: 0 0; animation: spin 6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .city circle { fill: var(--electric); }
+  .city.mid circle { fill: var(--amber); }
+  .city.out circle { fill: #ff7a59; }
+  .city text { fill: #dfe2f5; font-size: 10.5px; font-weight: 600; paint-order: stroke; stroke: var(--navy-950); stroke-width: 3px; }
+  .ping { opacity: .6; transform-box: fill-box; transform-origin: center; animation: ping 2.8s ease-out infinite; animation-delay: calc(var(--i, 0) * .17s); }
+  @keyframes ping { from { transform: scale(1); opacity: .7; } to { transform: scale(3.2); opacity: 0; } }
+  .hq circle { fill: #fff; }
+  .hq .ping { fill: var(--electric); }
+  .hq text { fill: #fff; font-weight: 800; font-size: 13px; paint-order: stroke; stroke: var(--navy-950); stroke-width: 4px; }
+  .legend { list-style: none; padding: 0; margin: 0; display: grid; gap: 18px; }
+  .legend li { display: flex; gap: 14px; align-items: flex-start; }
+  .legend strong { display: block; color: #fff; }
+  .legend span { color: #b9bddb; }
+  .dot { flex: none; width: 16px; height: 16px; border-radius: 50%; margin-top: 4px; }
+  .dot.in { background: var(--electric); box-shadow: 0 0 14px var(--electric); } .dot.mid { background: var(--amber); } .dot.out { background: #ff7a59; }
+  .note { color: #8f95c2; font-size: .85rem; }
+</style>

@@ -1,0 +1,90 @@
+---
+import { Image, getImage } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { gallery } from '../data/content';
+import { sectors } from '../data/sectors';
+import { img } from '../lib/images';
+const used = new Set(gallery.map((g) => g.sector));
+const filters = sectors.filter((s) => used.has(s.slug));
+const big = async (s: string) => { const m = img(s); return (await getImage({ src: m, width: Math.min(1600, m.width), format: 'webp' })).src; };
+const sets = await Promise.all(gallery.map(async (p) => JSON.stringify({ name: p.name, images: await Promise.all(p.images.map(big)) })));
+---
+<Base title="Project Gallery" description="Completed and in-progress commercial electrical projects by NCN Electric across Southwest Florida." image="projects/suncoast-1.jpg">
+  <PageHero eyebrow="Project gallery" title="Our commitment to excellence is always on display." lead="Work in progress and completed projects from across Southwest Florida." image="projects/market-walk-1.jpg" />
+  <section class="section">
+    <div class="container">
+      <div class="filters reveal" role="group" aria-label="Filter projects by sector">
+        <button class="on" data-filter="all">All</button>
+        {filters.map((f) => <button data-filter={f.slug}>{f.title}</button>)}
+      </div>
+      <div class="masonry">
+        {gallery.map((p, i) => (
+          <article class="proj reveal" data-sector={p.sector} style={`--d:${(i % 3) * 0.05}s`}>
+            <button class="shot" data-lightbox={sets[i]} aria-label={`View photos of ${p.name}`}>
+              <Image src={img(p.images[0])} alt={p.name} widths={[500, 900]} sizes="(max-width: 700px) 100vw, 33vw" />
+              {p.images.length > 1 && <span class="count">{p.images.length} photos</span>}
+            </button>
+            <div class="body">
+              <span class="pill">{p.status}</span>
+              <h3>{p.name}</h3>
+              <p class="loc">{p.location}{p.partner && <> · with {p.partner}</>}</p>
+              <p class="muted">{p.details}</p>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+  <dialog class="lb" data-lb aria-label="Project photos">
+    <button class="x" data-close aria-label="Close">&times;</button>
+    <button class="nav prev" data-prev aria-label="Previous photo">&lsaquo;</button>
+    <figure><img alt="" data-lbimg /><figcaption data-lbcap></figcaption></figure>
+    <button class="nav next" data-next aria-label="Next photo">&rsaquo;</button>
+  </dialog>
+  <CtaBand />
+</Base>
+<style>
+  .filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 36px; }
+  .filters button { padding: 10px 18px; border-radius: 999px; border: 1.5px solid var(--line); background: #fff; font: inherit; font-weight: 600; cursor: pointer; color: var(--navy-900); transition: .2s; }
+  .filters button:hover { border-color: var(--navy); }
+  .filters button.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .masonry { columns: 3 320px; column-gap: 24px; }
+  .proj { break-inside: avoid; margin-bottom: 24px; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+  .proj[hidden] { display: none; }
+  .shot { position: relative; display: block; width: 100%; padding: 0; border: 0; cursor: zoom-in; overflow: hidden; background: var(--bg); }
+  .shot :global(img) { width: 100%; transition: transform .8s var(--ease); }
+  .shot:hover :global(img) { transform: scale(1.05); }
+  .count { position: absolute; right: 12px; bottom: 12px; padding: 6px 12px; border-radius: 99px; background: rgba(12,10,38,.75); color: #fff; font-size: .8rem; font-weight: 700; }
+  .body { padding: 20px 22px 22px; }
+  .body h3 { margin: 10px 0 4px; }
+  .loc { color: var(--blue); font-weight: 600; font-size: .92rem; margin-bottom: 8px; }
+  .body .muted { margin: 0; font-size: .95rem; }
+  .lb { width: 100vw; height: 100vh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: rgba(8,6,28,.95); color: #fff; }
+  .lb[open] { display: grid; place-items: center; }
+  .lb figure { margin: 0; max-width: 90vw; text-align: center; }
+  .lb img { max-height: 80vh; max-width: 90vw; border-radius: 12px; margin: 0 auto; }
+  .lb figcaption { margin-top: 12px; color: #cfd3ef; }
+  .lb button { position: absolute; background: rgba(255,255,255,.1); color: #fff; border: 0; width: 52px; height: 52px; border-radius: 50%; font-size: 2rem; cursor: pointer; line-height: 1; }
+  .lb button:hover { background: rgba(255,255,255,.2); }
+  .x { top: 20px; right: 20px; }
+  .prev { left: 20px; top: 50%; } .next { right: 20px; top: 50%; }
+</style>
+<script>
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-filter]');
+  buttons.forEach((b) => b.addEventListener('click', () => {
+    buttons.forEach((x) => x.classList.toggle('on', x === b));
+    document.querySelectorAll<HTMLElement>('.proj').forEach((p) => { p.hidden = b.dataset.filter !== 'all' && p.dataset.sector !== b.dataset.filter; if (!p.hidden) p.classList.add('in'); });
+  }));
+  const lb = document.querySelector('[data-lb]') as HTMLDialogElement;
+  const pic = lb.querySelector('[data-lbimg]') as HTMLImageElement, cap = lb.querySelector('[data-lbcap]') as HTMLElement;
+  let set: { name: string; images: string[] } = { name: '', images: [] }, i = 0;
+  const show = () => { pic.src = set.images[i]; pic.alt = set.name; cap.textContent = `${set.name} · ${i + 1} of ${set.images.length}`; };
+  document.querySelectorAll<HTMLButtonElement>('[data-lightbox]').forEach((b) => b.addEventListener('click', () => { set = JSON.parse(b.dataset.lightbox!); i = 0; show(); lb.showModal(); }));
+  lb.querySelector('[data-close]')!.addEventListener('click', () => lb.close());
+  lb.querySelector('[data-prev]')!.addEventListener('click', () => { i = (i - 1 + set.images.length) % set.images.length; show(); });
+  lb.querySelector('[data-next]')!.addEventListener('click', () => { i = (i + 1) % set.images.length; show(); });
+  lb.addEventListener('click', (e) => { if (e.target === lb) lb.close(); });
+  addEventListener('keydown', (e) => { if (!lb.open) return; if (e.key === 'ArrowRight') (lb.querySelector('[data-next]') as HTMLButtonElement).click(); if (e.key === 'ArrowLeft') (lb.querySelector('[data-prev]') as HTMLButtonElement).click(); });
+</script>

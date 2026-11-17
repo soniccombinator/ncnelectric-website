@@ -1,0 +1,265 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import CtaBand from '../components/CtaBand.astro';
+import Testimonials from '../components/Testimonials.astro';
+import ClientMarquee from '../components/ClientMarquee.astro';
+import { img } from '../lib/images';
+import { site } from '../lib/site';
+import { services } from '../data/services';
+import { sectors } from '../data/sectors';
+
+const years = new Date().getFullYear() - site.founded;
+const featured = [
+  { name: 'SRQ Air Traffic Control Tower', meta: 'Sarasota · $80M · 128 ft tower', image: 'hero/srq-tower.jpg', href: '/sectors/airports', big: true },
+  { name: 'University Town Center', meta: 'Sarasota · 880,000 sq ft', image: 'sectors/retail.webp', href: '/sectors/retail' },
+  { name: 'Sarasota County EOC', meta: 'Category 5 rated · FEMA 361', image: 'sectors/municipalities.jpg', href: '/sectors/municipalities' },
+  { name: 'Suncoast Orthopaedic', meta: 'Venice · Completed 2023', image: 'projects/suncoast-1.jpg', href: '/projects' },
+  { name: 'Riverview High School', meta: 'Sarasota · $135M', image: 'sectors/education.jpg', href: '/sectors/education' },
+];
+---
+<Base title="NCN Electric" description="NCN Electric is a licensed, veteran-owned commercial and industrial electrical contractor serving Southwest Florida since 1982. Airports, healthcare, schools, retail, plus turnkey generator rentals.">
+  <script is:inline>
+    // Old generator-site links used #calculator, #fees, #terms and #application on the home page.
+    (function () { var m = { '#calculator': '/generators#planner', '#fees': '/generators#lineup', '#terms': '/generators/terms', '#application': '/generators/apply' }; if (m[location.hash]) location.replace(m[location.hash]); })();
+  </script>
+  <!-- HERO -->
+  <section class="hero">
+    <Image src={img('hero/srq-tower.jpg')} alt="Sarasota Bradenton International Airport control tower, electrical by NCN Electric" class="hero-bg" widths={[900, 1400, 2000]} sizes="100vw" loading="eager" fetchpriority="high" />
+    <div class="hero-shade" aria-hidden="true"></div>
+    <div class="hero-grid" aria-hidden="true"></div>
+    <div class="container hero-inner">
+      <span class="eyebrow">Commercial · Industrial · Temporary Power</span>
+      <h1>Powering Southwest Florida <span class="spark">since 1982.</span></h1>
+      <p class="lead">Licensed, veteran-owned electrical contractor trusted by the region's top builders on airports, hospitals, schools and landmark retail. On time, on budget, every time.</p>
+      <div class="btn-row">
+        <a class="btn btn-primary" href="/contact#quote">Request a Bid <span class="arrow">&rarr;</span></a>
+        <a class="btn btn-ghost" href="/generators"><Icon name="bolt" size={18} /> Generator Rentals</a>
+      </div>
+    </div>
+    <div class="container stats-wrap">
+      <dl class="stats">
+        <div><dt><span data-count={years}>{years}</span>+</dt><dd>Years in business</dd></div>
+        <div><dt><span data-count={sectors.length}>{sectors.length}</span></dt><dd>Sectors served</dd></div>
+        <div><dt>$<span data-count="315">315</span>M</dt><dd>Largest single project</dd></div>
+        <div><dt class="vet"><Icon name="shield" size={30} /></dt><dd>Veteran-owned small business</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <ClientMarquee />
+
+  <!-- TWO DOORS -->
+  <section class="section">
+    <div class="container">
+      <div class="section-head center reveal">
+        <span class="eyebrow">What we do</span>
+        <h2>One contractor. Two ways to power your project.</h2>
+      </div>
+      <div class="doors">
+        <a class="door reveal" href="/services">
+          <Image src={img('hero/construction-1.jpg')} alt="" widths={[600, 1000]} sizes="(max-width: 900px) 100vw, 50vw" />
+          <div class="door-body">
+            <span class="pill">For general contractors & owners</span>
+            <h3>Commercial Electrical</h3>
+            <p>New construction, remodels, design and engineering, lighting, fiber and fire alarm for projects of every size.</p>
+            <span class="go">Explore services <Icon name="arrow" size={18} /></span>
+          </div>
+        </a>
+        <a class="door gen reveal" style="--d:.1s" href="/generators">
+          <Image src={img('generators/flyer-event.png')} alt="" widths={[519]} sizes="(max-width: 900px) 100vw, 50vw" />
+          <div class="door-body">
+            <span class="pill amber">Events & temporary power</span>
+            <h3>Generator Rentals</h3>
+            <p>Turnkey diesel power delivered, connected by licensed electricians, and picked up. Event packages from $350.</p>
+            <span class="go">Plan your power <Icon name="arrow" size={18} /></span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section class="section bg-soft">
+    <div class="container">
+      <div class="split-head">
+        <div class="reveal"><span class="eyebrow">Services</span><h2>Done right the first time, every time.</h2></div>
+        <p class="lead reveal">We understand the pressure of designing, building and restoring commercial buildings. Our experienced electricians and project managers solve even the most complicated builds.</p>
+      </div>
+      <div class="grid grid-4 svc">
+        {services.map((s, i) => (
+          <a class="card lift svc-card reveal" style={`--d:${(i % 4) * 0.06}s`} href={`/services#${s.slug}`}>
+            <span class="ic"><Icon name={s.icon} size={26} /></span>
+            <h3>{s.title}</h3>
+            <p class="muted">{s.short}</p>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURED PROJECTS -->
+  <section class="section">
+    <div class="container">
+      <div class="split-head">
+        <div class="reveal"><span class="eyebrow">Featured work</span><h2>You've probably been inside our work.</h2></div>
+        <a class="btn btn-outline reveal" href="/projects">View all projects <span class="arrow">&rarr;</span></a>
+      </div>
+      <div class="bento">
+        {featured.map((p, i) => (
+          <a class:list={['tile', 'reveal', { big: p.big }]} style={`--d:${i * 0.07}s`} href={p.href}>
+            <Image src={img(p.image)} alt={p.name} widths={[500, 900, 1300]} sizes={p.big ? '(max-width: 900px) 100vw, 60vw' : '(max-width: 900px) 100vw, 30vw'} />
+            <div class="tile-cap"><strong>{p.name}</strong><span>{p.meta}</span></div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY NCN -->
+  <section class="section bg-navy why">
+    <div class="container split">
+      <div class="photo reveal"><Image src={img('hero/team-at-work.jpg')} alt="NCN Electric project team reviewing plans" widths={[700, 1200]} sizes="(max-width: 900px) 100vw, 50vw" /></div>
+      <div>
+        <span class="eyebrow reveal">Why builders choose NCN</span>
+        <h2 class="reveal">At our core, NCN is about relationships.</h2>
+        <ul class="why-list">
+          <li class="reveal"><Icon name="calendar" /><div><strong>On time, on budget</strong><span>We flood a project with key manpower at critical points of construction.</span></div></li>
+          <li class="reveal" style="--d:.06s"><Icon name="blueprint" /><div><strong>Precon & value engineering</strong><span>Design and VE expertise that helps control costs before the first conduit is set.</span></div></li>
+          <li class="reveal" style="--d:.12s"><Icon name="truck" /><div><strong>Supply chain strength</strong><span>Deep vendor relationships keep materials moving when others are waiting.</span></div></li>
+          <li class="reveal" style="--d:.18s"><Icon name="shield" /><div><strong>Veteran owned, licensed & insured</strong><span>Florida license {site.license}. Fair, transparent change orders.</span></div></li>
+        </ul>
+        <a class="btn btn-primary reveal" href="/about">Our story <span class="arrow">&rarr;</span></a>
+      </div>
+    </div>
+  </section>
+
+  <Testimonials />
+
+  <!-- GENERATOR PROMO -->
+  <section class="gen-promo">
+    <div class="container gp-inner">
+      <div class="gp-copy reveal">
+        <span class="eyebrow">NCN Generator Services</span>
+        <h2>You plan the event.<br /><span class="spark">We power it.</span></h2>
+        <p class="lead">Weddings, festivals, food trucks, stages and job sites. Diesel generators from 10 to 60 kW with delivery, licensed connection, startup and pickup in one simple price.</p>
+        <div class="price"><small>Event package from</small><strong>$350</strong><small>10 kW + delivery & setup within 40 miles</small></div>
+        <div class="btn-row"><a class="btn btn-primary" href="/generators#planner">Try the Power Planner <span class="arrow">&rarr;</span></a><a class="btn btn-ghost" href="/generators">See generators</a></div>
+      </div>
+      <div class="gp-art reveal" style="--d:.1s">
+        <div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div>
+        <Image src={img('generators/flyer-generators.png')} alt="NCN branded diesel generators" widths={[775]} />
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTORS -->
+  <section class="section">
+    <div class="container">
+      <div class="section-head center reveal"><span class="eyebrow">Sectors</span><h2>Experience across every kind of building.</h2></div>
+      <div class="sector-grid">
+        {sectors.map((s, i) => (
+          <a class="sector reveal" style={`--d:${(i % 4) * 0.05}s`} href={`/sectors/${s.slug}`}>
+            <Image src={img(s.image)} alt="" widths={[400, 700]} sizes="(max-width: 700px) 50vw, 25vw" />
+            <span>{s.title}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <CtaBand />
+</Base>
+
+<style>
+  .hero { position: relative; isolation: isolate; min-height: 100svh; display: flex; flex-direction: column; justify-content: center; color: #fff; overflow: hidden; background: var(--navy-950); }
+  .hero-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -3; animation: kb 24s ease-out both; }
+  .hero-shade { position: absolute; inset: 0; z-index: -2; background: linear-gradient(100deg, rgba(12,10,38,.94) 0%, rgba(20,16,57,.78) 42%, rgba(20,16,57,.25) 100%), linear-gradient(0deg, rgba(12,10,38,.9) 0%, transparent 40%); }
+  .hero-grid { position: absolute; inset: 0; z-index: -1; background-image: linear-gradient(rgba(92,200,255,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(92,200,255,.07) 1px, transparent 1px); background-size: 64px 64px; mask-image: radial-gradient(ellipse at 20% 40%, #000 0%, transparent 60%); }
+  .hero-inner { padding: 140px 0 40px; }
+  .hero h1 { color: #fff; max-width: 14ch; animation: rise 1s var(--ease) both .1s; }
+  .hero .eyebrow { color: var(--electric); animation: rise 1s var(--ease) both; }
+  .hero .lead { color: #d3d6ee; animation: rise 1s var(--ease) both .25s; }
+  .hero .btn-row { animation: rise 1s var(--ease) both .4s; margin-top: 8px; }
+  .spark { position: relative; white-space: nowrap; background: linear-gradient(90deg, #fff 0%, var(--electric) 40%, #fff 60%, var(--amber) 100%); background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 6s linear infinite; }
+  .spark::after { content: ''; position: absolute; left: 0; right: 0; bottom: -.08em; height: 4px; border-radius: 4px; background: linear-gradient(90deg, var(--electric), var(--amber)); transform-origin: left; animation: draw 1.2s var(--ease) both .9s; box-shadow: 0 0 18px var(--electric); }
+  .stats-wrap { padding-bottom: 40px; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); margin: 0; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.14); backdrop-filter: blur(14px); border-radius: var(--radius); animation: rise 1s var(--ease) both .55s; }
+  .stats > div { padding: 22px 26px; border-left: 1px solid rgba(255,255,255,.12); }
+  .stats > div:first-child { border-left: 0; }
+  .stats dt { font-family: var(--display); font-variation-settings: 'wdth' 112; font-weight: 800; font-size: clamp(1.8rem, 3vw, 2.6rem); color: #fff; line-height: 1; }
+  .stats dt.vet { color: var(--electric); }
+  .stats dd { margin: 6px 0 0; color: #b9bddb; font-size: .9rem; }
+  @media (max-width: 800px) { .stats { grid-template-columns: 1fr 1fr; } .stats > div:nth-child(3) { border-left: 0; } .stats > div:nth-child(n+3) { border-top: 1px solid rgba(255,255,255,.12); } }
+  @keyframes kb { from { transform: scale(1.15) translateX(2%); } to { transform: scale(1.02); } }
+  @keyframes rise { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+  @keyframes shimmer { to { background-position: -250% 0; } }
+  @keyframes draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+  .doors { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 900px) { .doors { grid-template-columns: 1fr; } }
+  .door { position: relative; display: block; min-height: 460px; border-radius: 24px; overflow: hidden; color: #fff; text-decoration: none; isolation: isolate; box-shadow: var(--shadow-lg); }
+  .door :global(img) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; transition: transform 1.2s var(--ease); }
+  .door::before { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(12,10,38,.1) 20%, rgba(12,10,38,.92) 100%); transition: background .5s; }
+  .door:hover :global(img) { transform: scale(1.07); }
+  .door:hover::before { background: linear-gradient(180deg, rgba(41,35,98,.3) 0%, rgba(12,10,38,.95) 100%); }
+  .door-body { position: absolute; left: 0; right: 0; bottom: 0; padding: 32px; }
+  .door h3 { color: #fff; font-size: clamp(1.8rem, 3vw, 2.4rem); margin: 12px 0 8px; }
+  .door p { color: #d5d8f0; max-width: 46ch; }
+  .door .pill { background: rgba(255,255,255,.16); color: #fff; backdrop-filter: blur(6px); }
+  .door .pill.amber { background: var(--amber); color: var(--navy-950); }
+  .go { display: inline-flex; gap: 8px; align-items: center; font-weight: 700; color: var(--amber); }
+  .door:hover .go :global(svg) { transform: translateX(4px); transition: transform .3s; }
+
+  .split-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; margin-bottom: 48px; flex-wrap: wrap; }
+  .split-head h2 { max-width: 16ch; margin: 0; }
+  .split-head .lead { margin: 0; max-width: 48ch; }
+  .svc-card { text-decoration: none; color: inherit; }
+  .svc-card h3 { font-size: 1.12rem; margin: 18px 0 6px; }
+  .svc-card p { margin: 0; font-size: .95rem; }
+  .ic { display: inline-grid; place-items: center; width: 54px; height: 54px; border-radius: 14px; background: linear-gradient(135deg, var(--navy), var(--blue)); color: #fff; box-shadow: 0 8px 20px rgba(74,99,211,.35); transition: transform .35s var(--ease); }
+  .svc-card:hover .ic { transform: rotate(-6deg) scale(1.06); }
+
+  .bento { display: grid; grid-template-columns: 1.6fr 1fr 1fr; grid-template-rows: 260px 260px; gap: 18px; }
+  .tile { position: relative; overflow: hidden; border-radius: 20px; color: #fff; text-decoration: none; isolation: isolate; }
+  .tile.big { grid-row: span 2; }
+  .tile :global(img) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; transition: transform 1s var(--ease); }
+  .tile::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, transparent 45%, rgba(12,10,38,.88)); }
+  .tile:hover :global(img) { transform: scale(1.08); }
+  .tile-cap { position: absolute; left: 20px; right: 20px; bottom: 18px; }
+  .tile-cap strong { display: block; font-family: var(--display); font-size: 1.15rem; }
+  .tile.big .tile-cap strong { font-size: 1.7rem; }
+  .tile-cap span { font-size: .88rem; color: #cfd3ef; }
+  @media (max-width: 900px) { .bento { grid-template-columns: 1fr 1fr; grid-template-rows: 320px 220px 220px; } .tile.big { grid-column: span 2; grid-row: auto; } }
+  @media (max-width: 560px) { .bento { grid-template-columns: 1fr; grid-template-rows: none; grid-auto-rows: 240px; } .tile.big { grid-column: auto; } }
+
+  .why .photo { aspect-ratio: 4/3; }
+  .why-list { list-style: none; padding: 0; margin: 24px 0 32px; display: grid; gap: 20px; }
+  .why-list li { display: flex; gap: 16px; }
+  .why-list li > :global(svg) { flex: none; color: var(--electric); margin-top: 3px; }
+  .why-list strong { display: block; color: #fff; font-size: 1.05rem; }
+  .why-list span { color: #b9bddb; }
+
+  .gen-promo { position: relative; overflow: hidden; padding: clamp(72px, 10vw, 130px) 0; color: #d5d8f0; background: radial-gradient(900px 500px at 85% 50%, rgba(255,176,32,.18), transparent 60%), radial-gradient(700px 500px at 10% 0%, rgba(74,99,211,.4), transparent 60%), var(--navy-950); }
+  .gp-inner { display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: center; }
+  @media (max-width: 900px) { .gp-inner { grid-template-columns: 1fr; } }
+  .gen-promo h2 { color: #fff; }
+  .gen-promo .lead { color: #c5c9e6; }
+  .price { display: inline-grid; margin: 8px 0 28px; padding: 18px 24px; border-radius: 16px; border: 1px solid rgba(255,176,32,.4); background: rgba(255,176,32,.08); }
+  .price strong { font-family: var(--display); font-variation-settings: 'wdth' 112; font-size: 3.2rem; line-height: 1; color: var(--amber); }
+  .price small { color: #c5c9e6; }
+  .gp-art { position: relative; display: grid; place-items: center; min-height: 380px; }
+  .gp-art :global(img) { position: relative; z-index: 2; border-radius: 20px; background: #fff; padding: 18px; box-shadow: 0 30px 80px rgba(0,0,0,.45), 0 0 60px rgba(92,200,255,.25); }
+  .ring { position: absolute; border-radius: 50%; border: 1px solid rgba(92,200,255,.35); animation: pulse 4s ease-out infinite; }
+  .r1 { width: 300px; height: 300px; } .r2 { width: 300px; height: 300px; animation-delay: 1.3s; } .r3 { width: 300px; height: 300px; animation-delay: 2.6s; }
+  @keyframes pulse { from { transform: scale(.8); opacity: .9; } to { transform: scale(2); opacity: 0; } }
+
+  .sector-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  @media (max-width: 900px) { .sector-grid { grid-template-columns: repeat(2, 1fr); } }
+  .sector { position: relative; aspect-ratio: 4/3; border-radius: 16px; overflow: hidden; isolation: isolate; color: #fff; text-decoration: none; display: flex; align-items: flex-end; padding: 16px; font-weight: 700; font-family: var(--display); font-size: 1.1rem; }
+  .sector :global(img) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; transition: transform .9s var(--ease); }
+  .sector::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(20,16,57,.05) 30%, rgba(20,16,57,.88)); transition: background .4s; }
+  .sector:hover :global(img) { transform: scale(1.1); }
+  .sector:hover::after { background: linear-gradient(180deg, rgba(74,99,211,.35), rgba(20,16,57,.9)); }
+</style>

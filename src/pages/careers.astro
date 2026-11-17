@@ -1,0 +1,66 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Icon from '../components/Icon.astro';
+import LeadForm from '../components/LeadForm.astro';
+// Openings come from src/content/openings/*.md. With no files, the page says there are no openings right now.
+const openings = (await getCollection('openings')).sort((a, b) => (b.data.posted?.getTime() ?? 0) - (a.data.posted?.getTime() ?? 0));
+const perks = [
+  { icon: 'building', t: 'Landmark projects', d: 'Airports, hospitals, schools and stadiums you can point to for decades.' },
+  { icon: 'grad', t: 'Registered apprenticeship', d: 'Earn while you learn, with on-site experience and a path to your license.' },
+  { icon: 'users', t: 'Veteran-led team', d: 'A culture of discipline, safety, respect and continuous improvement.' },
+  { icon: 'map', t: 'Close to home', d: 'Projects across Venice, Sarasota, Bradenton, Fort Myers, St. Pete and Tampa.' },
+];
+const roles = ['Electricians', 'Apprentices', 'Helpers', 'Foremen', 'Estimators', 'Project Managers', 'Project Coordinators', 'Office team'];
+---
+<Base title="Careers" description="Build your career with NCN Electric. Electricians, apprentices, foremen, project managers and office roles in Southwest Florida." image="hero/construction-2.jpg">
+  <PageHero eyebrow="Careers" title="Build what Southwest Florida runs on." lead="NCN is always looking for great people: apprentices, electricians, foremen, project leaders and office pros." image="hero/construction-2.jpg">
+    <div class="btn-row" style="margin-top:12px"><a class="btn btn-primary" href="#apply">Join our talent network <span class="arrow">&rarr;</span></a></div>
+  </PageHero>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head center reveal"><span class="eyebrow">Why NCN</span><h2>More than a job site.</h2></div>
+      <div class="grid grid-4">{perks.map((p, i) => <div class="card lift reveal" style={`--d:${i * 0.06}s`}><span class="ic"><Icon name={p.icon} /></span><h3>{p.t}</h3><p class="muted">{p.d}</p></div>)}</div>
+    </div>
+  </section>
+
+  <section class="section bg-soft" id="openings">
+    <div class="container">
+      <div class="section-head reveal"><span class="eyebrow">Open positions</span><h2>Current openings</h2></div>
+      {openings.length === 0 ? (
+        <div class="empty card reveal">
+          <Icon name="hardhat" size={40} />
+          <div><h3>No open positions right now</h3><p class="muted">We hire throughout the year. Join our talent network below and we'll reach out when a role fits. We regularly hire:</p>
+            <div class="roles">{roles.map((r) => <span class="pill">{r}</span>)}</div></div>
+        </div>
+      ) : (
+        <div class="jobs">{openings.map((o) => (
+          <article class="card job reveal"><div><h3>{o.data.title}</h3><p class="muted">{o.data.summary}</p><div class="roles"><span class="pill">{o.data.location}</span><span class="pill">{o.data.type}</span></div></div><a class="btn btn-dark" href="#apply">Apply</a></article>
+        ))}</div>
+      )}
+    </div>
+  </section>
+
+  <section class="section" id="apply">
+    <div class="container split">
+      <div class="reveal">
+        <span class="eyebrow">Apply</span>
+        <h2>Join our talent network.</h2>
+        <p class="lead">Tell us about yourself and attach your resume. We review every application and keep strong candidates on file for upcoming projects.</p>
+        <p class="muted">Questions about careers? Email <a href="mailto:BD@ncnelectric.com">BD@ncnelectric.com</a>.</p>
+      </div>
+      <div class="card reveal" style="--d:.08s"><LeadForm kind="careers" /></div>
+    </div>
+  </section>
+</Base>
+<style>
+  .ic { display: inline-grid; place-items: center; width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg, var(--navy), var(--blue)); color: #fff; margin-bottom: 16px; }
+  .empty { display: flex; gap: 24px; align-items: flex-start; padding: 36px; }
+  .empty > :global(svg) { flex: none; color: var(--blue); }
+  .roles { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .jobs { display: grid; gap: 16px; }
+  .job { display: flex; justify-content: space-between; gap: 24px; align-items: center; }
+  .split { align-items: start; }
+</style>

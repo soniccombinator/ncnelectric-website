@@ -1,0 +1,21 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+---
+<Base title="Page not found" description="This page could not be found." noindex>
+  <section class="nf">
+    <div class="container">
+      <div class="bolt" aria-hidden="true"><Icon name="power" size={64} /></div>
+      <span class="eyebrow">Error 404</span>
+      <h1>This circuit is dead.</h1>
+      <p class="lead">The page you're looking for has moved or no longer exists. Let's get you back on the grid.</p>
+      <div class="btn-row"><a class="btn btn-primary" href="/">Back to home <span class="arrow">&rarr;</span></a><a class="btn btn-ghost" href="/generators">Generator rentals</a><a class="btn btn-ghost" href="/contact">Contact us</a></div>
+    </div>
+  </section>
+</Base>
+<style>
+  .nf { min-height: 90vh; display: grid; align-items: center; padding: 140px 0 80px; color: #fff; background: radial-gradient(700px 400px at 50% 30%, rgba(74,99,211,.45), transparent 60%), var(--navy-950); text-align: center; }
+  .nf h1 { color: #fff; } .nf .lead { color: #c5c9e6; margin-inline: auto; } .nf .eyebrow { color: var(--electric); } .nf .btn-row { justify-content: center; }
+  .bolt { display: inline-grid; place-items: center; width: 120px; height: 120px; border-radius: 50%; margin-bottom: 24px; color: var(--electric); border: 2px solid rgba(92,200,255,.4); animation: flicker 3s infinite; }
+  @keyframes flicker { 0%, 100% { opacity: 1; box-shadow: 0 0 40px rgba(92,200,255,.5); } 45% { opacity: 1; } 47% { opacity: .3; box-shadow: none; } 49% { opacity: 1; } 51% { opacity: .4; } 53% { opacity: 1; } }
+</style>

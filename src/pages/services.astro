@@ -1,0 +1,74 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Icon from '../components/Icon.astro';
+import CtaBand from '../components/CtaBand.astro';
+import ClientMarquee from '../components/ClientMarquee.astro';
+import { services } from '../data/services';
+import { img } from '../lib/images';
+const steps = [
+  { t: 'Preconstruction', d: 'Plan review, value engineering and a clear, competitive bid.' },
+  { t: 'Planning & procurement', d: 'Schedules, submittals and early material buys through strong vendor relationships.' },
+  { t: 'Installation', d: 'Licensed electricians and seasoned foremen, with manpower surged at critical points.' },
+  { t: 'Turnover', d: 'Testing, inspections, as-builts and a clean closeout.' },
+];
+---
+<Base title="Commercial Electrical Services" description="Commercial and industrial electrical services in Southwest Florida: new construction, design and engineering, lighting, remodels, fiber, fire alarm and backup power." image="hero/construction-1.jpg">
+  <PageHero eyebrow="Commercial electrical" title="Electrical work that keeps your schedule on track." lead="From ground-up construction to occupied-building remodels, NCN brings licensed crews, seasoned project managers and four decades of know-how to every job." image="hero/construction-1.jpg">
+    <div class="btn-row" style="margin-top:12px"><a class="btn btn-primary" href="/contact#quote">Request a Bid <span class="arrow">&rarr;</span></a></div>
+  </PageHero>
+  <ClientMarquee />
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head reveal"><span class="eyebrow">What we do</span><h2>Full-scope commercial electrical.</h2></div>
+      <div class="svc-list">
+        {services.map((s, i) => (
+          <article class="svc reveal" id={s.slug} style={`--d:${(i % 2) * 0.08}s`}>
+            <span class="ic"><Icon name={s.icon} size={28} /></span>
+            <div><h3>{s.title}</h3><p>{s.body}</p></div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section bg-navy">
+    <div class="container">
+      <div class="section-head center reveal"><span class="eyebrow">How we work</span><h2>A process general contractors trust.</h2></div>
+      <ol class="process">
+        {steps.map((s, i) => <li class="reveal" style={`--d:${i * 0.1}s`}><span class="num">{String(i + 1).padStart(2, '0')}</span><h3>{s.t}</h3><p>{s.d}</p></li>)}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container split">
+      <div class="reveal">
+        <span class="eyebrow">Temporary power</span>
+        <h2>Need power before the permanent service is live?</h2>
+        <p class="lead">NCN Generator Services delivers, connects and supports diesel generators from 10 to 60 kW, with standard delivery and setup included on active NCN projects.</p>
+        <a class="btn btn-dark" href="/generators">Generator Rentals <span class="arrow">&rarr;</span></a>
+      </div>
+      <div class="photo reveal" style="--d:.1s"><Image src={img('generators/flyer-generators.png')} alt="NCN diesel generators" widths={[775]} style="background:#fff;padding:24px" /></div>
+    </div>
+  </section>
+  <CtaBand />
+</Base>
+<style>
+  .svc-list { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 40px; }
+  @media (max-width: 800px) { .svc-list { grid-template-columns: 1fr; } }
+  .svc { display: flex; gap: 20px; padding: 28px 0; border-top: 1px solid var(--line); scroll-margin-top: 100px; }
+  .svc h3 { margin: 4px 0 8px; }
+  .svc p { color: var(--muted); margin: 0; }
+  .ic { flex: none; display: grid; place-items: center; width: 60px; height: 60px; border-radius: 16px; background: linear-gradient(135deg, var(--navy), var(--blue)); color: #fff; box-shadow: 0 10px 24px rgba(74,99,211,.3); }
+  .process { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; counter-reset: s; }
+  @media (max-width: 900px) { .process { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 520px) { .process { grid-template-columns: 1fr; } }
+  .process li { position: relative; padding: 28px; border-radius: var(--radius); background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); }
+  .process li::after { content: ''; position: absolute; left: 28px; right: 28px; top: 0; height: 2px; background: linear-gradient(90deg, var(--electric), transparent); }
+  .num { font-family: var(--display); font-size: 2.4rem; font-weight: 800; color: var(--electric); opacity: .9; }
+  .process h3 { margin: 10px 0 6px; }
+  .process p { color: #b9bddb; margin: 0; }
+</style>

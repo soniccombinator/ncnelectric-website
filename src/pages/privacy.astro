@@ -1,0 +1,38 @@
+---
+// Prepared as a starting point; have NCN's attorney review before relying on it.
+import LegalPage from '../components/LegalPage.astro';
+import { site } from '../lib/site';
+---
+<LegalPage title="Privacy Policy" description="How NCN Electric collects, uses and protects information submitted through this website." updated="November 16, 2026">
+  <p>{site.legalName} ("NCN", "we", "us") respects your privacy. This policy explains what information we collect through www.ncnelectric.com, how we use it, and the choices you have.</p>
+  <h2>Information we collect</h2>
+  <ul>
+    <li><strong>Information you give us.</strong> When you request a quote or bid, apply for a generator rental, acknowledge rental terms, contact us, or apply for a job, we collect what you enter, such as your name, company, email, phone number, addresses, event or project details, and any resume or file you attach.</li>
+    <li><strong>Technical information.</strong> Our hosting provider automatically records basic technical data such as IP address, browser type and the pages requested. We use it to keep the site secure and working and to prevent spam and abuse.</li>
+    <li><strong>On your device.</strong> If you acknowledge the rental terms, a copy of your acknowledgement is saved in your own browser so you can download it. We do not use advertising or tracking cookies.</li>
+  </ul>
+  <h2>How we use information</h2>
+  <ul>
+    <li>To respond to your request, prepare quotes and bids, and provide services you ask for.</li>
+    <li>To review job applications and contact candidates.</li>
+    <li>To send you a confirmation of your submission and related follow-up.</li>
+    <li>To operate, secure and improve the website, and to comply with law.</li>
+  </ul>
+  <p>We do not sell your personal information, and we do not share it with third parties for their own marketing.</p>
+  <h2>Who we share it with</h2>
+  <p>We share information only with service providers that help us run the website and our business (for example, website hosting and our business email system), with our professional advisors, or when required by law. These providers may use the information only to provide services to us.</p>
+  <h2>Embedded maps</h2>
+  <p>Our contact page shows maps provided by Google. When a map loads, Google may collect information about your visit under its own privacy policy.</p>
+  <h2>How long we keep it</h2>
+  <p>We keep submissions as long as needed to respond, provide services, keep business records and meet legal requirements, and then delete or archive them.</p>
+  <h2>Security</h2>
+  <p>We use reasonable safeguards, including encrypted connections (HTTPS). No method of transmission or storage is completely secure, so please do not send sensitive information such as Social Security or bank account numbers through our forms.</p>
+  <h2>Children</h2>
+  <p>This website is intended for adults and businesses. We do not knowingly collect information from children under 13.</p>
+  <h2>Your choices</h2>
+  <p>You may ask us to access, correct or delete the information you submitted by contacting us below. We will respond as required by applicable law.</p>
+  <h2>Changes</h2>
+  <p>We may update this policy. The date at the top shows when it last changed.</p>
+  <h2>Contact us</h2>
+  <p>{site.legalName}, {site.offices[0].street}, {site.offices[0].city}, {site.offices[0].state} {site.offices[0].zip}. Phone <a href={site.phoneHref}>{site.phone}</a>. Email <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
+</LegalPage>

@@ -1,24 +1,30 @@
 # ncnelectric-website
 
-NCN Generator Services website. Currently the original ChatGPT build (v26); to be replaced by the v2 full-company site.
+The NCN Electric website (https://www.ncnelectric.com): commercial electrical services, sectors, projects, team,
+careers, and NCN Generator Services (Power Planner, rental application, rental terms).
 
-## How updates go live
-1. A change is committed to `main` (Claude makes these on request).
-2. GitHub Actions runs `npm test` (checks every page asset loads and the pricing module/terms parse).
-3. Railway auto-deploys `main` once the check passes ("Wait for CI" enabled).
+Built with [Astro](https://astro.build) (static pages) plus a small Node server (`server.cjs`) for redirects and the
+form/email API. Hosted on Railway; every push to `main` deploys automatically.
+
+## Editing
+Staff edit by prompting Claude. `CLAUDE.md` maps every common request to the file to change.
 
 ## Run locally
-`npm start` then open http://127.0.0.1:8080 (Node 20+, no installs needed).
+```
+npm ci
+npm run build
+npm start        # http://127.0.0.1:8080
+npm test         # site smoke test + form API test
+```
+`npm run dev` gives a live-reload preview of the pages (forms need `npm start`).
 
-## Known issues before public launch
-- Rental terms page and `NCN T&C FINAL.docx` still contain internal drafting notes; counsel approval pending.
-- Never commit passwords, tokens or Microsoft 365 secrets; use Railway variables.
-
-## Email (rental applications)
-The server emails each application to NCN (`MAIL_ADMIN_TO`) and a confirmation to the applicant, sent through
-Microsoft 365 from `MAIL_SENDER` (sonic@ncnelectric.com). Until all five Railway variables are set
-(`MS_TENANT_ID`, `MS_CLIENT_ID`, `MS_CLIENT_SECRET`, `MAIL_SENDER`, `MAIL_ADMIN_TO`) the form shows
-"Online submission unavailable" and nothing is sent.
+## Email (forms)
+Forms email NCN and send confirmations through Microsoft 365 (Microsoft Graph, app-only, sending from `MAIL_SENDER`).
+Until these Railway variables are set the forms show phone and email instead:
+`MS_TENANT_ID`, `MS_CLIENT_ID`, `MS_CLIENT_SECRET`, `MAIL_SENDER`, `MAIL_ADMIN_TO` (generator team),
+optional `MAIL_GENERAL_TO` (contact/bid and careers; defaults to `MAIL_ADMIN_TO`).
 - One-time Microsoft 365 setup (NCN admin): `powershell -ExecutionPolicy Bypass -File scripts\setup-m365-mail.ps1`
 - Live test: `railway run node scripts/mail-test.cjs`
-- The client secret expires (24 months by default). Re-run the setup script to rotate it.
+
+## Known items before relying on legal pages
+- Rental terms, Privacy Policy and Terms of Use were prepared with AI assistance and need review by NCN's attorney.

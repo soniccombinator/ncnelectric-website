@@ -1,0 +1,109 @@
+---
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import { rates } from '../../lib/rental-model.mjs';
+import { site } from '../../lib/site';
+const f = (id: string, label: string, type = 'text', req = true, extra = '') => ({ id, label, type, req, extra });
+const fields = [
+  f('company', 'Your name or company'), f('contact', 'Contact name'), f('email', 'Email', 'email'), f('phone', 'Phone', 'tel'),
+  f('project', 'Event or project name'), f('site', 'Rental / event address'), f('billing', 'Billing address'), f('onsite', 'On-site contact and phone'),
+  f('start', 'Start date', 'date'), f('end', 'Return date', 'date'),
+];
+---
+<Base title="Generator Rental Application" description="Apply for an NCN Electric generator rental. Get an instant estimate and send your details to our generator team." heroDark={false}>
+  <section class="section app-top">
+    <div class="container">
+      <a href="/generators" class="back">&larr; Generator Rentals</a>
+      <span class="eyebrow">Rental application</span>
+      <h1>Apply for a generator rental.</h1>
+      <p class="lead">Send your rental and site details for a formal quote. Submitting an application does not confirm a reservation. Just exploring? Try the <a href="/generators#planner">Power Planner</a> or a <a href="/generators#quote">quick quote</a>.</p>
+    </div>
+  </section>
+  <section class="section tight">
+    <div class="container app">
+      <form class="form card" id="application" novalidate>
+        <div class="hp" aria-hidden="true"><label>Leave empty <input name="website" tabindex="-1" autocomplete="off" /></label></div>
+        <h2>1. Customer & event details</h2>
+        <div class="fields">
+          {fields.map((x) => <div class="field"><label for={x.id}>{x.label} {x.req && '*'}</label><input id={x.id} name={x.id} type={x.type} required={x.req} maxlength="500" /></div>)}
+          <div class="field wide"><label for="notes">Site requirements, voltage, phase, accessories, notes</label><textarea id="notes" name="notes" rows="4" maxlength="5000"></textarea></div>
+        </div>
+        <h2>2. Generator & service</h2>
+        <div class="fields">
+          <div class="field"><label for="kw">Generator</label><select id="kw">{rates.map((r: { kw: number; daily: number }) => <option value={r.kw}>{r.kw} kW Diesel (${r.daily}/day)</option>)}</select></div>
+          <div class="field"><label for="customer">Customer type</label><select id="customer"><option value="event">Event or venue</option><option value="ncn">Active NCN construction project</option></select></div>
+          <div class="field"><label for="period">Rental period</label><select id="period"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></div>
+          <div class="field"><label for="quantity" data-qlabel>Number of days</label><input id="quantity" type="number" min="1" step="1" value="1" /></div>
+          <div class="field"><label for="miles">Driving miles from Venice (one way)</label><input id="miles" type="number" min="0" step="0.1" value="0" /><small>Event fee includes 40 miles. Beyond 85 miles is a custom quote.</small></div>
+          <div class="field"><label for="extraHours">Expected extra operating hours</label><input id="extraHours" type="number" min="0" step="0.5" value="0" /><small>Only hours beyond 10 per rental day.</small></div>
+        </div>
+        <label class="check"><input type="checkbox" id="ack" required /> <span>I request an NCN rental quote based on this application. I understand availability and final charges require NCN approval. I have read the <a href="/generators/terms" target="_blank" rel="noopener">rental terms</a>.</span></label>
+        <div class="form-note err" role="alert" hidden data-err></div>
+        <button class="btn btn-primary" type="submit" data-submit>Submit application <span class="arrow">&rarr;</span></button>
+        <div class="form-note" role="status" aria-live="polite" hidden data-status></div>
+        <p class="small muted">Prefer to talk? Call <a href={site.phoneHref}>{site.phone}</a> or email {site.generators.contacts.map((c, i) => <>{i > 0 && ' or '}<a href={`mailto:${c.email}`}>{c.email}</a></>)}.</p>
+      </form>
+      <aside class="summary card" aria-live="polite">
+        <h2><Icon name="bolt" /> Your estimate</h2>
+        <dl data-breakdown></dl>
+        <p class="small muted">Before tax and fuel. Accessories, permits and additional labor are extra. Availability and final pricing require NCN approval.</p>
+        <button class="btn btn-outline" type="button" onclick="window.print()">Print / save PDF</button>
+      </aside>
+    </div>
+  </section>
+</Base>
+<style>
+  .app-top { padding-top: 140px; padding-bottom: 10px; }
+  .back { display: inline-block; margin-bottom: 18px; font-weight: 600; text-decoration: none; }
+  .app { display: grid; grid-template-columns: 1.6fr 1fr; gap: 28px; align-items: start; }
+  @media (max-width: 960px) { .app { grid-template-columns: 1fr; } }
+  .app h2 { font-size: 1.3rem; margin: 10px 0 0; }
+  .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .fields .wide { grid-column: 1 / -1; }
+  @media (max-width: 640px) { .fields { grid-template-columns: 1fr; } }
+  .summary { position: sticky; top: 96px; background: linear-gradient(180deg, #fff, #f6f7fd); }
+  .summary h2 { display: flex; gap: 10px; align-items: center; color: var(--navy); }
+  .summary dl { display: grid; gap: 8px; margin: 16px 0; }
+  .summary dl div { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px dashed var(--line); padding-bottom: 8px; }
+  .summary dt { color: var(--muted); } .summary dd { margin: 0; font-weight: 700; }
+  .summary .total dd { font-family: var(--display); font-size: 1.8rem; color: var(--navy); }
+  @media print { :global(.site-header), :global(.footer), :global(.mobile-bar), [data-submit] { display: none !important; } }
+</style>
+<script>
+  import { estimateRental } from '../../lib/rental-model.mjs';
+  const $ = <T extends HTMLElement = HTMLInputElement>(id: string) => document.getElementById(id) as T;
+  const money = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
+  const state = () => ({ kw: Number($('kw').value), customer: $<HTMLSelectElement>('customer').value, period: $<HTMLSelectElement>('period').value, quantity: Number($('quantity').value), miles: Number($('miles').value) || 0, extraHours: Number($('extraHours').value) || 0, gallons: 0, fuelCost: 0 });
+  function render() {
+    const s = state();
+    document.querySelector('[data-qlabel]')!.textContent = { daily: 'Number of days', weekly: 'Number of weeks', monthly: 'Number of months' }[s.period as 'daily'];
+    const e = estimateRental(s);
+    const dl = document.querySelector('[data-breakdown]')!;
+    if (!e.valid) { dl.innerHTML = '<div><dt>Enter a whole number of at least 1</dt><dd></dd></div>'; return; }
+    const rows: [string, string][] = [['Rental', money(e.rental)], ['Delivery & standard setup', s.customer === 'ncn' ? 'Included' : money(e.setup)], ['Extra mileage', money(e.mileage)], ['Extra operating hours', money(e.excess)]];
+    dl.innerHTML = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('') + `<div class="total"><dt>Estimated total</dt><dd>${e.customQuote ? 'Custom quote' : money(e.total)}</dd></div>`;
+  }
+  document.querySelectorAll('#application input, #application select').forEach((el) => el.addEventListener('input', render));
+  render();
+
+  const form = $<HTMLFormElement>('application'), err = document.querySelector<HTMLElement>('[data-err]')!, status = document.querySelector<HTMLElement>('[data-status]')!, btn = document.querySelector<HTMLButtonElement>('[data-submit]')!;
+  let enabled = false;
+  fetch('/api/status', { cache: 'no-store' }).then((r) => r.json()).then((s) => { enabled = s.applications === true; if (!enabled) { btn.disabled = true; btn.style.opacity = '.55'; status.hidden = false; status.textContent = 'Online submission is being connected. Please print or save this page and email it to our generator team, or call us.'; } }).catch(() => {});
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault(); err.hidden = true;
+    if (!form.reportValidity()) return;
+    if ($('end').value < $('start').value) { err.hidden = false; err.textContent = 'Return date must be on or after the start date.'; return; }
+    if (!enabled) return;
+    const v = (id: string) => $(id).value;
+    const data = { company: v('company'), contact: v('contact'), email: v('email'), phone: v('phone'), project: v('project'), billing: v('billing'), site: v('site'), onsite: v('onsite'), start: v('start'), end: v('end'), notes: (document.getElementById('notes') as HTMLTextAreaElement).value, ...state(), acknowledged: $('ack').checked, website: (form.querySelector('[name=website]') as HTMLInputElement).value };
+    btn.disabled = true; btn.textContent = 'Sending...';
+    try {
+      const r = await fetch('/api/application', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      const body = await r.json().catch(() => ({}));
+      if (!r.ok || !body.ok) throw new Error(body.error || 'Your application could not be sent.');
+      status.hidden = false; status.className = 'form-note ok';
+      status.textContent = `Application sent. Reference ${body.reference}. Our generator team will contact you about availability and a final quote.${body.confirmationSent === false ? '' : ` A confirmation email is on its way to ${data.email}.`}`;
+      btn.textContent = 'Application sent';
+    } catch (x) { err.hidden = false; err.textContent = (x as Error).message; btn.disabled = false; btn.textContent = 'Submit application'; }
+  });
+</script>

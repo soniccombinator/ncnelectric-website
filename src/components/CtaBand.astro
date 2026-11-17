@@ -1,0 +1,29 @@
+---
+import Icon from './Icon.astro';
+import { site } from '../lib/site';
+interface Props { title?: string; text?: string; primary?: { label: string; href: string }; }
+const { title = 'Have a project coming up?', text = 'Send us your plans or bid package. Our precon team will get back to you fast with a clear, competitive number.', primary = { label: 'Request a Bid', href: '/contact#quote' } } = Astro.props;
+---
+<section class="cta">
+  <div class="container">
+    <div class="box reveal">
+      <div class="lines" aria-hidden="true"></div>
+      <div>
+        <h2>{title}</h2>
+        <p>{text}</p>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn-primary" href={primary.href}>{primary.label} <span class="arrow">&rarr;</span></a>
+        <a class="btn btn-ghost" href={site.phoneHref}><Icon name="phone" size={18} /> {site.phone}</a>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  .cta { padding: 0 0 clamp(64px, 9vw, 120px); }
+  .box { position: relative; overflow: hidden; display: grid; grid-template-columns: 1.4fr auto; gap: 32px; align-items: center; padding: clamp(32px, 5vw, 64px); border-radius: 28px; color: #d5d8f0; background: radial-gradient(800px 400px at 0% 0%, #4a63d3 0%, transparent 60%), radial-gradient(600px 300px at 100% 100%, #5cc8ff55, transparent 60%), var(--navy-900); }
+  .box h2 { color: #fff; margin-bottom: .3em; }
+  .box p { margin: 0; max-width: 56ch; }
+  .lines { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px); background-size: 44px 44px; mask-image: linear-gradient(90deg, transparent, #000 60%); pointer-events: none; }
+  @media (max-width: 860px) { .box { grid-template-columns: 1fr; } }
+</style>

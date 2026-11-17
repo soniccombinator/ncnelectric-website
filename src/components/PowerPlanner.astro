@@ -1,0 +1,169 @@
+---
+// Interactive "what are you powering?" sizing and price estimator.
+// Wattages are typical running loads for planning only; NCN confirms sizing with a load review.
+import Icon from './Icon.astro';
+import { rates } from '../lib/rental-model.mjs';
+export const loads = [
+  { id: 'lights', label: 'String lights (100 ft)', watts: 250, emoji: '✨' },
+  { id: 'dj', label: 'DJ or small PA', watts: 1500, emoji: '🎧' },
+  { id: 'band', label: 'Live band sound', watts: 5000, emoji: '🎸' },
+  { id: 'stage', label: 'Stage lighting rig', watts: 4000, emoji: '🎭' },
+  { id: 'truck', label: 'Food truck', watts: 8000, emoji: '🚚' },
+  { id: 'catering', label: 'Catering warmers & coffee', watts: 3000, emoji: '☕' },
+  { id: 'fridge', label: 'Refrigerator or cooler', watts: 800, emoji: '🧊' },
+  { id: 'trailer', label: 'A/C office or restroom trailer', watts: 5000, emoji: '🚻' },
+  { id: 'fan', label: 'Tent fan', watts: 400, emoji: '🌀' },
+  { id: 'booth', label: 'Vendor booth (lights, POS)', watts: 500, emoji: '🛍️' },
+  { id: 'tower', label: 'Light tower', watts: 1200, emoji: '🗼' },
+  { id: 'tools', label: 'Job site tools', watts: 2500, emoji: '🔨' },
+];
+---
+<div class="planner" data-planner data-loads={JSON.stringify(loads)} data-rates={JSON.stringify(rates)}>
+  <div class="pick">
+    <h3><span class="step">1</span> What are you powering?</h3>
+    <p class="muted small">Tap to add. Use + and − for more than one.</p>
+    <ul class="loads">
+      {loads.map((l) => (
+        <li class="load" data-id={l.id}>
+          <button type="button" class="add" aria-label={`Add ${l.label}`}><span class="emo" aria-hidden="true">{l.emoji}</span><span class="lbl">{l.label}</span><span class="w">{l.watts >= 1000 ? `${l.watts / 1000} kW` : `${l.watts} W`}</span></button>
+          <div class="qty" hidden><button type="button" class="minus" aria-label={`Remove one ${l.label}`}>−</button><output>0</output><button type="button" class="plus" aria-label={`Add another ${l.label}`}>+</button></div>
+        </li>
+      ))}
+    </ul>
+  </div>
+
+  <div class="result" aria-live="polite">
+    <h3><span class="step">2</span> Your power plan</h3>
+    <div class="meter" role="img" aria-label="Estimated load meter">
+      <div class="fill" data-fill></div>
+      <span class="mark m10" style="left:16.67%">10 kW</span><span class="mark m30" style="left:50%">30 kW</span><span class="mark m60" style="left:100%">60 kW</span>
+    </div>
+    <p class="load-line"><strong data-kw>0.0</strong> kW estimated load <span class="muted">(plus 25% safety margin)</span></p>
+    <div class="rec" data-rec>
+      <span class="rec-label">Recommended</span>
+      <strong data-recname>Add items to see a recommendation</strong>
+      <span data-recnote class="muted small"></span>
+    </div>
+
+    <h3 class="mt"><span class="step">3</span> Estimate your price</h3>
+    <div class="opts">
+      <label>Rental days <input type="number" min="1" max="60" value="1" data-days /></label>
+      <label>Driving miles from Venice <input type="number" min="0" max="500" value="20" data-miles /></label>
+      <label class="wide">Customer type
+        <select data-customer><option value="event">Event or venue</option><option value="ncn">Active NCN construction project</option></select></label>
+    </div>
+    <dl class="price" data-price>
+      <div><dt>Generator rental</dt><dd data-p-rental>–</dd></div>
+      <div><dt>Delivery, setup & pickup</dt><dd data-p-setup>–</dd></div>
+      <div><dt>Extra mileage</dt><dd data-p-miles>–</dd></div>
+      <div class="total"><dt>Estimated total</dt><dd data-p-total>–</dd></div>
+    </dl>
+    <p class="tiny muted">Estimate before tax and fuel. Includes up to 10 operating hours per day. NCN confirms final sizing and price with a quick load review. Not a reservation.</p>
+    <a href="#quote" class="btn btn-primary full" data-request><Icon name="bolt" size={18} /> Request this quote</a>
+  </div>
+</div>
+
+<style>
+  .planner { display: grid; grid-template-columns: 1.15fr 1fr; gap: 28px; align-items: start; }
+  @media (max-width: 980px) { .planner { grid-template-columns: 1fr; } }
+  .pick, .result { background: #fff; border-radius: 24px; padding: clamp(22px, 3vw, 34px); box-shadow: var(--shadow-lg); color: var(--ink); }
+  .result { position: sticky; top: 90px; background: linear-gradient(180deg, #fff, #f7f8fd); }
+  h3 { display: flex; align-items: center; gap: 12px; font-size: 1.2rem; }
+  h3.mt { margin-top: 28px; }
+  .step { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--navy); color: #fff; font-size: .9rem; }
+  .loads { list-style: none; padding: 0; margin: 16px 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 12px; }
+  .load { position: relative; border: 1.5px solid var(--line); border-radius: 16px; transition: border-color .2s, box-shadow .2s, transform .2s; background: #fff; }
+  .load.on { border-color: var(--blue); box-shadow: 0 0 0 4px rgba(74,99,211,.14); }
+  .load:hover { transform: translateY(-2px); }
+  .add { all: unset; box-sizing: border-box; cursor: pointer; display: grid; gap: 4px; width: 100%; padding: 16px 14px; border-radius: 16px; }
+  .add:focus-visible { outline: 3px solid var(--electric); }
+  .emo { font-size: 1.7rem; line-height: 1; }
+  .lbl { font-weight: 700; font-size: .92rem; color: var(--navy-900); line-height: 1.25; }
+  .w { font-size: .78rem; color: var(--muted); }
+  .qty[hidden] { display: none; }
+  .qty { display: flex; align-items: center; justify-content: space-between; padding: 0 10px 12px; }
+  .qty button { width: 34px; height: 34px; border-radius: 50%; border: 0; background: var(--navy); color: #fff; font-size: 1.2rem; cursor: pointer; }
+  .qty output { font-weight: 800; font-size: 1.1rem; color: var(--navy); }
+  .meter { position: relative; height: 22px; border-radius: 99px; background: #e9ebf5; margin: 26px 0 30px; }
+  .fill { height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--blue), var(--electric)); box-shadow: 0 0 22px rgba(92,200,255,.7); transition: width .7s var(--ease), background .4s; }
+  .fill.over { background: linear-gradient(90deg, var(--amber), #ff6b3d); box-shadow: 0 0 22px rgba(255,140,40,.6); }
+  .mark { position: absolute; top: 28px; transform: translateX(-50%); font-size: .72rem; font-weight: 700; color: var(--muted); white-space: nowrap; }
+  .mark::before { content: ''; position: absolute; left: 50%; top: -30px; width: 2px; height: 24px; background: rgba(41,35,98,.25); }
+  .m60 { transform: translateX(-100%); }
+  .m60::before { left: auto; right: 0; }
+  .load-line { margin: 0 0 14px; }
+  .load-line strong { font-family: var(--display); font-size: 1.6rem; color: var(--navy); }
+  .rec { display: grid; gap: 4px; padding: 18px 20px; border-radius: 16px; background: var(--navy-900); color: #fff; transition: background .4s; }
+  .rec.pulse { animation: pop .5s var(--ease); }
+  .rec-label { font-size: .72rem; letter-spacing: .16em; text-transform: uppercase; color: var(--electric); font-weight: 700; }
+  .rec strong { font-family: var(--display); font-size: 1.5rem; font-variation-settings: 'wdth' 110; }
+  .rec .muted { color: #b9bddb; }
+  @keyframes pop { 50% { transform: scale(1.03); } }
+  .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .opts label { display: grid; gap: 6px; font-weight: 600; font-size: .88rem; color: var(--navy-900); }
+  .opts .wide { grid-column: 1 / -1; }
+  .opts input, .opts select { padding: 11px 13px; border: 1.5px solid #d6d8e6; border-radius: 12px; font: inherit; }
+  .price { margin: 18px 0 10px; display: grid; gap: 8px; }
+  .price div { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 8px; border-bottom: 1px dashed var(--line); }
+  .price dt { color: var(--muted); }
+  .price dd { margin: 0; font-weight: 700; color: var(--navy-900); }
+  .price .total { border-bottom: 0; padding-top: 4px; }
+  .price .total dt { color: var(--navy-900); font-weight: 700; }
+  .price .total dd { font-family: var(--display); font-size: 1.8rem; color: var(--navy); }
+  .tiny { font-size: .78rem; }
+  .full { width: 100%; }
+</style>
+
+<script>
+  import { estimateRental } from '../lib/rental-model.mjs';
+  const root = document.querySelector<HTMLElement>('[data-planner]');
+  if (root) {
+    const loads: { id: string; label: string; watts: number }[] = JSON.parse(root.dataset.loads!);
+    const qty: Record<string, number> = {};
+    const $ = (s: string) => root.querySelector(s) as HTMLElement;
+    const money = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
+    let lastRec = '';
+
+    root.querySelectorAll<HTMLElement>('.load').forEach((li) => {
+      const id = li.dataset.id!;
+      const set = (n: number) => { qty[id] = Math.max(0, Math.min(20, n)); li.classList.toggle('on', qty[id] > 0); (li.querySelector('.qty') as HTMLElement).hidden = qty[id] === 0; li.querySelector('output')!.textContent = String(qty[id]); render(); };
+      li.querySelector('.add')!.addEventListener('click', () => set((qty[id] || 0) + 1));
+      li.querySelector('.plus')!.addEventListener('click', () => set((qty[id] || 0) + 1));
+      li.querySelector('.minus')!.addEventListener('click', () => set((qty[id] || 0) - 1));
+    });
+    root.querySelectorAll('input, select').forEach((el) => el.addEventListener('input', render));
+
+    function pick(kw: number) { return kw === 0 ? null : kw <= 10 ? 10 : kw <= 30 ? 30 : kw <= 60 ? 60 : -1; }
+    function render() {
+      const watts = loads.reduce((t, l) => t + (qty[l.id] || 0) * l.watts, 0);
+      const need = (watts * 1.25) / 1000;
+      const rec = pick(need);
+      $('[data-kw]').textContent = (watts / 1000).toFixed(1);
+      const fill = $('[data-fill]'); fill.style.width = `${Math.min(100, (need / 60) * 100)}%`; fill.classList.toggle('over', rec === -1);
+      const name = rec === null ? 'Add items to see a recommendation' : rec === -1 ? 'Multiple generators: custom quote' : `${rec} kW Diesel Generator`;
+      $('[data-recname]').textContent = name;
+      $('[data-recnote]').textContent = rec === null ? '' : rec === -1 ? `About ${need.toFixed(0)} kW needed with margin. NCN will design a multi-generator setup.` : `About ${need.toFixed(1)} kW needed with a 25% safety margin.`;
+      if (name !== lastRec && rec !== null) { const r = $('[data-rec]'); r.classList.remove('pulse'); void r.offsetWidth; r.classList.add('pulse'); }
+      lastRec = name;
+      const days = Math.max(1, Math.round(Number(($('[data-days]') as HTMLInputElement).value) || 1));
+      const miles = Math.max(0, Number(($('[data-miles]') as HTMLInputElement).value) || 0);
+      const customer = ($('[data-customer]') as HTMLSelectElement).value;
+      const kw = rec && rec > 0 ? rec : 10;
+      const e = estimateRental({ kw, period: 'daily', quantity: days, customer, miles });
+      const show = rec !== -1 && e.valid;
+      $('[data-p-rental]').textContent = show ? `${money(e.rental)} (${kw} kW × ${days} day${days > 1 ? 's' : ''})` : '–';
+      $('[data-p-setup]').textContent = show ? (customer === 'ncn' ? 'Included' : money(e.setup)) : '–';
+      $('[data-p-miles]').textContent = show ? (e.customQuote ? 'Custom quote' : money(e.mileage)) : '–';
+      $('[data-p-total]').textContent = !show ? 'Custom quote' : e.customQuote ? 'Custom quote (85+ miles)' : money(e.total);
+      root!.dataset.summary = [
+        `Power Planner: ${name}`,
+        ...loads.filter((l) => qty[l.id]).map((l) => `- ${qty[l.id]} x ${l.label}`),
+        `Estimated load: ${(watts / 1000).toFixed(1)} kW (${need.toFixed(1)} kW with margin)`,
+        `Days: ${days}, driving miles: ${miles}, customer: ${customer === 'ncn' ? 'NCN project' : 'event/venue'}`,
+        show ? `Online estimate: ${e.customQuote ? 'custom quote' : money(e.total)} before tax and fuel` : '',
+      ].filter(Boolean).join('\n');
+    }
+    $('[data-request]').addEventListener('click', () => dispatchEvent(new CustomEvent('ncn:prefill', { detail: { message: root.dataset.summary } })));
+    render();
+  }
+</script>

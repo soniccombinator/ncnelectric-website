@@ -1,0 +1,92 @@
+---
+// One form component for contact / bid requests, generator quotes and careers.
+// Submits to /api/lead. If website email is not switched on yet, it shows phone and email instead.
+import { site } from '../lib/site';
+interface Props { kind: 'contact' | 'generator' | 'careers'; id?: string; submitLabel?: string }
+const { kind, id = `${kind}-form`, submitLabel = kind === 'careers' ? 'Send my application' : kind === 'generator' ? 'Request my quote' : 'Send message' } = Astro.props;
+const fallbackEmail = kind === 'generator' ? site.generators.contacts.map((c) => c.email).join(' or ') : site.email;
+---
+<form class="form lead-form" id={id} data-kind={kind} novalidate>
+  <div class="hp" aria-hidden="true"><label>Leave this empty <input name="website" tabindex="-1" autocomplete="off" /></label></div>
+  <div class="row">
+    <div class="field"><label for={`${id}-name`}>Your name *</label><input id={`${id}-name`} name="name" required maxlength="120" autocomplete="name" /></div>
+    {kind === 'careers'
+      ? <div class="field"><label for={`${id}-topic`}>Position of interest</label><select id={`${id}-topic`} name="topic"><option>Electrician</option><option>Apprentice</option><option>Helper</option><option>Foreman</option><option>Project Manager / Coordinator</option><option>Estimator</option><option>Office</option><option>Other</option></select></div>
+      : <div class="field"><label for={`${id}-company`}>Company {kind === 'generator' ? '(optional)' : ''}</label><input id={`${id}-company`} name="company" maxlength="160" autocomplete="organization" /></div>}
+  </div>
+  <div class="row">
+    <div class="field"><label for={`${id}-email`}>Email *</label><input id={`${id}-email`} name="email" type="email" required maxlength="254" autocomplete="email" /></div>
+    <div class="field"><label for={`${id}-phone`}>Phone *</label><input id={`${id}-phone`} name="phone" type="tel" required maxlength="40" autocomplete="tel" /></div>
+  </div>
+  {kind === 'generator' && (
+    <div class="row">
+      <div class="field"><label for={`${id}-date`}>Event or start date</label><input id={`${id}-date`} name="date" type="date" /></div>
+      <div class="field"><label for={`${id}-location`}>City or venue *</label><input id={`${id}-location`} name="location" required maxlength="200" placeholder="e.g. Venice, FL" /></div>
+    </div>
+  )}
+  {kind === 'contact' && (
+    <div class="field"><label for={`${id}-topic`}>How can we help?</label>
+      <select id={`${id}-topic`} name="topic"><option>Request a bid or quote</option><option>Generator rental</option><option>Service call</option><option>General question</option><option>Other</option></select></div>
+  )}
+  <div class="field">
+    <label for={`${id}-message`}>{kind === 'generator' ? 'What do you need to power?' : kind === 'careers' ? 'Tell us about your experience' : 'Message *'}</label>
+    <textarea id={`${id}-message`} name="message" rows="5" maxlength="5000" required={kind === 'contact'} placeholder={kind === 'generator' ? 'Lights, DJ, food trucks, A/C trailer, number of days...' : kind === 'contact' ? 'Project name, location, bid date, scope...' : 'Licenses, years of experience, recent projects...'}></textarea>
+  </div>
+  {kind === 'careers' && (
+    <div class="field"><label for={`${id}-file`}>Resume (PDF or Word, up to 3 MB)</label><input id={`${id}-file`} name="file" type="file" accept=".pdf,.doc,.docx" /></div>
+  )}
+  <label class="check"><input type="checkbox" name="consent" required /> <span>I agree that NCN Electric may contact me about this request. See our <a href="/privacy">Privacy Policy</a>.</span></label>
+  <button class="btn btn-primary" type="submit">{submitLabel} <span class="arrow">&rarr;</span></button>
+  <div class="form-note" role="status" aria-live="polite" hidden></div>
+  <p class="small muted fallback" hidden>Prefer to talk? Call <a href={site.phoneHref}>{site.phone}</a> or email <a href={`mailto:${kind === 'generator' ? site.generators.contacts[0].email : site.email}`}>{fallbackEmail}</a>.</p>
+</form>
+
+<script>
+  let status: Promise<boolean> | null = null;
+  const formsOn = () => (status ??= fetch('/api/status', { cache: 'no-store' }).then((r) => r.json()).then((s) => s.forms === true).catch(() => false));
+  const readFile = (f: File) => new Promise<string>((ok, bad) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1]); r.onerror = bad; r.readAsDataURL(f); });
+
+  document.querySelectorAll<HTMLFormElement>('form.lead-form').forEach(async (form) => {
+    const note = form.querySelector<HTMLElement>('.form-note')!;
+    const fallback = form.querySelector<HTMLElement>('.fallback')!;
+    const btn = form.querySelector<HTMLButtonElement>('button[type=submit]')!;
+    const show = (msg: string, cls = '') => { note.hidden = false; note.className = `form-note ${cls}`; note.textContent = msg; };
+    if (!(await formsOn())) {
+      show('Online requests are being connected. In the meantime, please call or email us and we will respond quickly.');
+      fallback.hidden = false;
+      btn.disabled = true; btn.style.opacity = '.55';
+      return;
+    }
+    fallback.hidden = false;
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!form.reportValidity()) return;
+      const data: Record<string, unknown> = Object.fromEntries(new FormData(form).entries());
+      delete data.file; data.consent = !!data.consent; data.kind = form.dataset.kind; data.page = location.pathname;
+      const file = form.querySelector<HTMLInputElement>('input[type=file]')?.files?.[0];
+      if (file) {
+        if (file.size > 3 * 1024 * 1024) return show('Please attach a file smaller than 3 MB.', 'err');
+        data.attachment = { name: file.name, type: file.type || 'application/octet-stream', content: await readFile(file) };
+      }
+      btn.disabled = true; const label = btn.innerHTML; btn.textContent = 'Sending...';
+      try {
+        const r = await fetch('/api/lead', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+        const body = await r.json().catch(() => ({}));
+        if (!r.ok || !body.ok) throw new Error(body.error || 'Something went wrong.');
+        form.querySelectorAll('input:not([type=checkbox]):not(.hp input), textarea').forEach((el) => ((el as HTMLInputElement).value = ''));
+        show(`Thank you! We received your request (reference ${body.reference}) and will be in touch shortly.${body.confirmationSent ? ' A confirmation email is on its way.' : ''}`, 'ok');
+        btn.innerHTML = 'Sent';
+      } catch (err) {
+        show(`${(err as Error).message} Please try again, or call us.`, 'err');
+        btn.disabled = false; btn.innerHTML = label;
+      }
+    });
+  });
+
+  // Let other components (the Power Planner) pre-fill the generator quote form.
+  addEventListener('ncn:prefill', (e) => {
+    const { message } = (e as CustomEvent).detail;
+    const box = document.querySelector<HTMLTextAreaElement>('form[data-kind=generator] textarea[name=message]');
+    if (box) { box.value = message; }
+  });
+</script>

@@ -1,13 +1,15 @@
-// Rental application endpoint: validates on the server, recalculates the estimate,
-// emails NCN (alert) and the applicant (confirmation). Recipients for NCN are fixed server-side.
+// Form endpoints. Everything validates on the server; NCN recipients are fixed in Railway variables.
+//   GET  /api/status       -> { applications, forms } (whether email is configured)
+//   POST /api/application  -> full generator rental application (alert to MAIL_ADMIN_TO + confirmation)
+//   POST /api/lead         -> quick generator quote, contact/bid request, careers, terms acknowledgement
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const crypto = require('node:crypto');
 
-const MAX_BODY = 64 * 1024;
-const RATE_LIMIT = 5;                 // applications per IP per window
+const RATE_LIMIT = 5;                 // submissions per IP per window (per endpoint)
 const RATE_WINDOW_MS = 60 * 60 * 1000;
 const DUPLICATE_MS = 10 * 60 * 1000;  // identical submissions inside this window are not re-sent
+const MAX_ATTACHMENT = 3 * 1024 * 1024;
 
 const TEXT_FIELDS = {
   company: ['Customer / company', 160], contact: ['Contact name', 120], email: ['Email', 254],
@@ -18,9 +20,11 @@ const TEXT_FIELDS = {
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const money = n => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
 const oneLine = v => String(v ?? '').replace(/[\r\n]+/g, ' ').trim();
+const EMAIL = /^[^\s@<>,;"]+@[^\s@<>,;"]+\.[^\s@<>,;"]{2,}$/;
+const newRef = () => 'NCN-' + crypto.randomBytes(3).toString('hex').toUpperCase();
 
 let modelPromise;
-const model = () => modelPromise ||= import(pathToFileURL(path.join(__dirname, 'website', 'rental-model.mjs')).href);
+const model = () => modelPromise ||= import(pathToFileURL(path.join(__dirname, 'src', 'lib', 'rental-model.mjs')).href);
 
 async function validate(input) {
   if (!input || typeof input !== 'object') return { error: 'Invalid request.' };
@@ -32,7 +36,7 @@ async function validate(input) {
     out[key] = v;
   }
   out.notes = String(input.notes ?? '').trim().slice(0, 5000);
-  if (!/^[^\s@<>,;"]+@[^\s@<>,;"]+\.[^\s@<>,;"]{2,}$/.test(out.email)) return { error: 'Enter a valid email address.' };
+  if (!EMAIL.test(out.email)) return { error: 'Enter a valid email address.' };
   const date = /^\d{4}-\d{2}-\d{2}$/;
   if (!date.test(out.start) || !date.test(out.end) || Number.isNaN(Date.parse(out.start)) || Number.isNaN(Date.parse(out.end))) return { error: 'Enter valid rental dates.' };
   if (out.end < out.start) return { error: 'Return date must be on or after the requested start date.' };
@@ -46,6 +50,39 @@ async function validate(input) {
   const estimate = (await model()).estimateRental(rental);
   if (!estimate.valid) return { error: 'Check the generator and rental selections.' };
   return { application: out, rental, estimate };
+}
+
+const LEAD_KINDS = {
+  generator: { label: 'Generator quote request', team: 'generators' },
+  acknowledgement: { label: 'Rental terms acknowledgement', team: 'generators' },
+  contact: { label: 'Website inquiry', team: 'general' },
+  careers: { label: 'Careers application', team: 'general' },
+};
+function validateLead(input) {
+  if (!input || typeof input !== 'object') return { error: 'Invalid request.' };
+  const kind = String(input.kind || '');
+  if (!LEAD_KINDS[kind]) return { error: 'Invalid request.' };
+  const f = {
+    name: oneLine(input.name).slice(0, 120), company: oneLine(input.company).slice(0, 160), email: oneLine(input.email).slice(0, 254),
+    phone: oneLine(input.phone).slice(0, 40), topic: oneLine(input.topic).slice(0, 120), location: oneLine(input.location).slice(0, 200),
+    date: oneLine(input.date).slice(0, 10), page: oneLine(input.page).slice(0, 200), message: String(input.message ?? '').trim().slice(0, 5000),
+  };
+  if (!f.name) return { error: 'Please enter your name.' };
+  if (!EMAIL.test(f.email)) return { error: 'Enter a valid email address.' };
+  if (!f.phone) return { error: 'Please enter a phone number.' };
+  if (input.consent !== true) return { error: 'Please check the consent box.' };
+  if (kind === 'generator' && !f.location) return { error: 'Please enter the city or venue.' };
+  if (kind === 'contact' && !f.message) return { error: 'Please enter a message.' };
+  if (f.date && !/^\d{4}-\d{2}-\d{2}$/.test(f.date)) return { error: 'Enter a valid date.' };
+  let attachment = null;
+  if (input.attachment) {
+    if (kind !== 'careers') return { error: 'Attachments are not accepted here.' };
+    const a = input.attachment, name = oneLine(a.name).slice(0, 120);
+    if (!/\.(pdf|docx?)$/i.test(name) || typeof a.content !== 'string' || !/^[A-Za-z0-9+/=]+$/.test(a.content)) return { error: 'Attach a PDF or Word file.' };
+    if (Buffer.byteLength(a.content, 'base64') > MAX_ATTACHMENT) return { error: 'Please attach a file smaller than 3 MB.' };
+    attachment = { name, type: /\.pdf$/i.test(name) ? 'application/pdf' : 'application/octet-stream', content: a.content };
+  }
+  return { kind, lead: f, attachment };
 }
 
 function estimateRows(rental, e) {
@@ -75,7 +112,6 @@ function adminEmail({ application: a, rental, estimate }, ref) {
 <p style="color:#666">The applicant confirmed this is a request for review only, not a confirmed reservation. Estimate recalculated on the server.</p>`),
   };
 }
-
 function confirmationEmail({ application: a, rental, estimate }, ref) {
   return {
     subject: `We received your generator rental request (${ref})`,
@@ -86,58 +122,93 @@ function confirmationEmail({ application: a, rental, estimate }, ref) {
 <p>Questions? Reply to this email.</p><p>NCN Electric<br>Power Generational Service</p>`),
   };
 }
-
-function createApi({ mailer, now = Date.now, log = console }) {
-  const hits = new Map(), recent = new Map();
-  function limited(ip) {
-    const t = now(), list = (hits.get(ip) || []).filter(x => t - x < RATE_WINDOW_MS);
-    list.push(t); hits.set(ip, list);
-    if (hits.size > 5000) for (const [k, v] of hits) if (!v.some(x => t - x < RATE_WINDOW_MS)) hits.delete(k);
-    return list.length > RATE_LIMIT;
-  }
-  const json = (res, status, body) => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(body)); };
-
-  return async function handle(req, res) {
-    const url = new URL(req.url, 'http://localhost');
-    if (url.pathname === '/api/status' && req.method === 'GET') return json(res, 200, { applications: Boolean(mailer) }), true;
-    if (url.pathname !== '/api/application') return false;
-    if (req.method !== 'POST') return json(res, 405, { error: 'Method not allowed.' }), true;
-    if (!mailer) return json(res, 503, { error: 'Online submission is not available yet.' }), true;
-    if (!String(req.headers['content-type'] || '').startsWith('application/json')) return json(res, 415, { error: 'Invalid request.' }), true;
-
-    let size = 0; const chunks = [];
-    try {
-      for await (const c of req) { size += c.length; if (size > MAX_BODY) return json(res, 413, { error: 'Application is too large.' }), true; chunks.push(c); }
-    } catch { return json(res, 400, { error: 'Invalid request.' }), true; }
-    let input; try { input = JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { return json(res, 400, { error: 'Invalid request.' }), true; }
-
-    const ip = String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
-    if (limited(ip)) return json(res, 429, { error: 'Too many applications from this connection. Please try again later or call NCN.' }), true;
-    // Honeypot: real visitors never fill the hidden "website" field. Pretend success.
-    if (input && input.website) return json(res, 200, { ok: true, reference: 'NCN-' + crypto.randomBytes(3).toString('hex').toUpperCase() }), true;
-
-    const v = await validate(input);
-    if (v.error) return json(res, 400, { error: v.error }), true;
-
-    const t = now();
-    for (const [k, x] of recent) if (t - x.at > DUPLICATE_MS) recent.delete(k);
-    const key = crypto.createHash('sha256').update(JSON.stringify([v.application, v.rental])).digest('hex');
-    if (recent.has(key)) return json(res, 200, { ok: true, reference: recent.get(key).ref, duplicate: true }), true;
-
-    const ref = 'NCN-' + crypto.randomBytes(3).toString('hex').toUpperCase();
-    try {
-      await mailer.send({ to: mailer.adminTo, replyTo: v.application.email, ...adminEmail(v, ref) });
-    } catch (e) {
-      log.error(`[application ${ref}] NCN alert failed: ${e.message}`);
-      return json(res, 502, { error: 'Your application could not be sent. Please try again, or print it and email it to NCN.' }), true;
-    }
-    recent.set(key, { at: t, ref });
-    let confirmationSent = true;
-    try { await mailer.send({ to: [v.application.email], replyTo: mailer.adminTo[0], ...confirmationEmail(v, ref) }); }
-    catch (e) { confirmationSent = false; log.error(`[application ${ref}] confirmation failed: ${e.message}`); }
-    log.log(`[application ${ref}] sent to NCN; confirmation ${confirmationSent ? 'sent' : 'failed'}`);
-    return json(res, 200, { ok: true, reference: ref, confirmationSent }), true;
+function leadAdminEmail({ kind, lead: l }, ref) {
+  const rows = [['Reference', ref], ['Type', LEAD_KINDS[kind].label], ['Name', l.name], ['Company', l.company], ['Email', l.email], ['Phone', l.phone],
+    ['Topic / position', l.topic], ['City or venue', l.location], ['Date', l.date], ['Message', l.message], ['Sent from page', l.page]].filter(([, v]) => v);
+  return {
+    subject: `${LEAD_KINDS[kind].label}: ${l.name}${l.company ? ` (${l.company})` : ''} [${ref}]`,
+    html: wrap(`<h2 style="margin:0 0 8px">${esc(LEAD_KINDS[kind].label)}</h2><p>From the NCN Electric website. Reply to this email to answer ${esc(l.name)} directly.</p>${table(rows)}`),
+  };
+}
+function leadConfirmationEmail({ kind, lead: l }, ref) {
+  const what = { generator: 'generator quote request', acknowledgement: 'rental terms acknowledgement', contact: 'message', careers: 'application' }[kind];
+  return {
+    subject: `NCN Electric received your ${what} (${ref})`,
+    html: wrap(`<p>Hi ${esc(l.name)},</p><p>Thank you for contacting NCN Electric. We received your ${esc(what)} and will be in touch soon.</p><p>Your reference number is <b>${esc(ref)}</b>.</p>${l.message ? `<p style="color:#555">What you sent:</p><blockquote style="border-left:3px solid #ddd;margin:0;padding-left:12px;color:#555;white-space:pre-wrap">${esc(l.message)}</blockquote>` : ''}<p>NCN Electric<br>(941) 488-0005<br>www.ncnelectric.com</p>`),
   };
 }
 
-module.exports = { createApi, validate, adminEmail, confirmationEmail };
+function createApi({ mailer, now = Date.now, log = console }) {
+  const hits = new Map(), recent = new Map();
+  function limited(key) {
+    const t = now(), list = (hits.get(key) || []).filter(x => t - x < RATE_WINDOW_MS);
+    list.push(t); hits.set(key, list);
+    if (hits.size > 5000) for (const [k, v] of hits) if (!v.some(x => t - x < RATE_WINDOW_MS)) hits.delete(k);
+    return list.length > RATE_LIMIT;
+  }
+  function seen(payload) {
+    const t = now();
+    for (const [k, x] of recent) if (t - x.at > DUPLICATE_MS) recent.delete(k);
+    const key = crypto.createHash('sha256').update(JSON.stringify(payload)).digest('hex');
+    return { key, prior: recent.get(key) };
+  }
+  const json = (res, status, body) => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(body)); return true; };
+  async function readJson(req, res, max) {
+    if (!String(req.headers['content-type'] || '').startsWith('application/json')) { json(res, 415, { error: 'Invalid request.' }); return null; }
+    let size = 0; const chunks = [];
+    try { for await (const c of req) { size += c.length; if (size > max) { json(res, 413, { error: 'Submission is too large.' }); return null; } chunks.push(c); } }
+    catch { json(res, 400, { error: 'Invalid request.' }); return null; }
+    try { return JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { json(res, 400, { error: 'Invalid request.' }); return null; }
+  }
+  const ipOf = req => String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+  const generatorsTo = () => mailer.adminTo;
+  const generalTo = () => (mailer.generalTo && mailer.generalTo.length ? mailer.generalTo : mailer.adminTo);
+
+  return async function handle(req, res) {
+    const url = new URL(req.url, 'http://localhost');
+    if (!url.pathname.startsWith('/api/')) return false;
+    if (url.pathname === '/api/status' && req.method === 'GET') return json(res, 200, { applications: Boolean(mailer), forms: Boolean(mailer) });
+    const route = { '/api/application': 'application', '/api/lead': 'lead' }[url.pathname];
+    if (!route) return json(res, 404, { error: 'Not found.' });
+    if (req.method !== 'POST') return json(res, 405, { error: 'Method not allowed.' });
+    if (!mailer) return json(res, 503, { error: 'Online submission is not available yet.' });
+    const input = await readJson(req, res, route === 'lead' ? 6 * 1024 * 1024 : 64 * 1024);
+    if (input === null) return true;
+    if (limited(`${route}:${ipOf(req)}`)) return json(res, 429, { error: 'Too many submissions from this connection. Please try again later or call NCN at (941) 488-0005.' });
+    // Honeypot: real visitors never fill the hidden "website" field. Pretend success.
+    if (input && input.website) return json(res, 200, { ok: true, reference: newRef() });
+
+    if (route === 'application') {
+      const v = await validate(input);
+      if (v.error) return json(res, 400, { error: v.error });
+      const { key, prior } = seen([v.application, v.rental]);
+      if (prior) return json(res, 200, { ok: true, reference: prior.ref, duplicate: true });
+      const ref = newRef();
+      try { await mailer.send({ to: generatorsTo(), replyTo: v.application.email, ...adminEmail(v, ref) }); }
+      catch (e) { log.error(`[application ${ref}] NCN alert failed: ${e.message}`); return json(res, 502, { error: 'Your application could not be sent. Please try again, or print it and email it to NCN.' }); }
+      recent.set(key, { at: now(), ref });
+      let confirmationSent = true;
+      try { await mailer.send({ to: [v.application.email], replyTo: generatorsTo()[0], ...confirmationEmail(v, ref) }); }
+      catch (e) { confirmationSent = false; log.error(`[application ${ref}] confirmation failed: ${e.message}`); }
+      log.log(`[application ${ref}] sent to NCN; confirmation ${confirmationSent ? 'sent' : 'failed'}`);
+      return json(res, 200, { ok: true, reference: ref, confirmationSent });
+    }
+
+    const v = validateLead(input);
+    if (v.error) return json(res, 400, { error: v.error });
+    const { key, prior } = seen([v.kind, v.lead, v.attachment && v.attachment.content.length]);
+    if (prior) return json(res, 200, { ok: true, reference: prior.ref, duplicate: true });
+    const ref = newRef();
+    const to = LEAD_KINDS[v.kind].team === 'generators' ? generatorsTo() : generalTo();
+    try { await mailer.send({ to, replyTo: v.lead.email, ...leadAdminEmail(v, ref), attachments: v.attachment ? [v.attachment] : undefined }); }
+    catch (e) { log.error(`[lead ${ref}] NCN alert failed: ${e.message}`); return json(res, 502, { error: 'Your request could not be sent.' }); }
+    recent.set(key, { at: now(), ref });
+    let confirmationSent = true;
+    try { await mailer.send({ to: [v.lead.email], replyTo: to[0], ...leadConfirmationEmail(v, ref) }); }
+    catch (e) { confirmationSent = false; log.error(`[lead ${ref}] confirmation failed: ${e.message}`); }
+    log.log(`[lead ${ref}] ${v.kind} sent to NCN; confirmation ${confirmationSent ? 'sent' : 'failed'}`);
+    return json(res, 200, { ok: true, reference: ref, confirmationSent });
+  };
+}
+
+module.exports = { createApi, validate, validateLead, adminEmail, confirmationEmail };

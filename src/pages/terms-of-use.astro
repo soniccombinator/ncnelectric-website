@@ -1,0 +1,26 @@
+---
+// Prepared as a starting point; have NCN's attorney review before relying on it.
+import LegalPage from '../components/LegalPage.astro';
+import { site } from '../lib/site';
+---
+<LegalPage title="Website Terms of Use" description="Terms that apply to using the NCN Electric website." updated="November 16, 2026">
+  <p>By using www.ncnelectric.com (the "site") you agree to these terms. If you do not agree, please do not use the site.</p>
+  <h2>Information only</h2>
+  <p>Content on this site is general information about {site.legalName} and its services. It is not professional, engineering or legal advice for your specific situation.</p>
+  <h2>Estimates are not offers</h2>
+  <p>Prices, calculators, the Power Planner and online estimates are for planning only. They are not an offer, quote, contract or reservation. Equipment sizing, availability, pricing, taxes and terms are confirmed only in a written quote or Service Order accepted by NCN. Generator rentals are governed by the Service Order and the rental terms attached to it.</p>
+  <h2>Your submissions</h2>
+  <p>You agree that information you submit is accurate and that you have the right to share it. Do not submit anything unlawful, harmful or that belongs to someone else. Our <a href="/privacy">Privacy Policy</a> explains how we handle submissions.</p>
+  <h2>Intellectual property</h2>
+  <p>The NCN Electric name, logo, text, photos and design of this site belong to NCN or its licensors. You may view and print pages for your own use, but may not copy, modify or reuse them commercially without written permission.</p>
+  <h2>Links to other sites</h2>
+  <p>We may link to third-party websites. We are not responsible for their content or practices.</p>
+  <h2>No warranty</h2>
+  <p>The site is provided "as is" and "as available." To the fullest extent permitted by law, NCN disclaims all warranties about the site, including accuracy, availability and fitness for a particular purpose.</p>
+  <h2>Limitation of liability</h2>
+  <p>To the fullest extent permitted by law, NCN is not liable for any indirect, incidental or consequential damages arising from your use of the site. This does not limit any rights you have under a signed agreement with NCN or rights that cannot be limited by law.</p>
+  <h2>Governing law</h2>
+  <p>These terms are governed by the laws of the State of Florida.</p>
+  <h2>Changes and contact</h2>
+  <p>We may update these terms at any time by posting a new version. Questions? Call <a href={site.phoneHref}>{site.phone}</a> or email <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
+</LegalPage>

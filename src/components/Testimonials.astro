@@ -1,0 +1,50 @@
+---
+import Icon from './Icon.astro';
+import { testimonials } from '../data/content';
+---
+<section class="section bg-soft">
+  <div class="container">
+    <div class="section-head center reveal"><span class="eyebrow">What builders say</span><h2>Our clients say it best.</h2></div>
+    <div class="t-wrap reveal">
+      <div class="track" data-track>
+        {testimonials.map((t) => (
+          <figure class="t-card">
+            <div class="stars" aria-label="Five stars">{[1,2,3,4,5].map(() => <Icon name="star" size={18} />)}</div>
+            <blockquote>&ldquo;{t.quote}&rdquo;</blockquote>
+            <figcaption><strong>{t.name === t.company ? t.company : t.name}</strong><span>{t.name === t.company ? t.project : `${t.company} · ${t.project}`}</span></figcaption>
+          </figure>
+        ))}
+      </div>
+      <div class="dots" data-dots>{testimonials.map((_, i) => <button aria-label={`Show testimonial ${i + 1}`} data-i={i} />)}</div>
+    </div>
+  </div>
+</section>
+<style>
+  .t-wrap { position: relative; }
+  .track { display: grid; grid-auto-flow: column; grid-auto-columns: min(100%, 560px); gap: 24px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding: 8px 4px 20px; justify-content: start; }
+  .track::-webkit-scrollbar { display: none; }
+  .t-card { scroll-snap-align: center; margin: 0; padding: 36px; background: #fff; border-radius: 22px; border: 1px solid var(--line); box-shadow: var(--shadow); display: flex; flex-direction: column; }
+  .stars { display: flex; gap: 2px; color: var(--amber); }
+  .stars :global(svg) { fill: currentColor; }
+  blockquote { margin: 18px 0 24px; font-size: 1.12rem; line-height: 1.6; color: var(--navy-900); flex: 1; }
+  figcaption strong { display: block; color: var(--navy-900); }
+  figcaption span { color: var(--muted); font-size: .9rem; }
+  .dots { display: flex; justify-content: center; gap: 10px; margin-top: 8px; }
+  .dots button { width: 10px; height: 10px; border-radius: 99px; border: 0; background: #cdd0e2; cursor: pointer; padding: 0; transition: width .3s, background .3s; }
+  .dots button.on { width: 28px; background: var(--navy); }
+</style>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-track]').forEach((track) => {
+    const dots = [...track.parentElement!.querySelectorAll<HTMLButtonElement>('[data-dots] button')];
+    const cards = [...track.children] as HTMLElement[];
+    let i = 0, timer: number | undefined;
+    const go = (n: number) => { i = (n + cards.length) % cards.length; track.scrollTo({ left: cards[i].offsetLeft - track.offsetLeft - 4, behavior: 'smooth' }); };
+    const mark = () => { const x = track.scrollLeft; let best = 0; cards.forEach((c, k) => { if (Math.abs(c.offsetLeft - track.offsetLeft - x) < Math.abs(cards[best].offsetLeft - track.offsetLeft - x)) best = k; }); i = best; dots.forEach((d, k) => d.classList.toggle('on', k === best)); };
+    track.addEventListener('scroll', () => requestAnimationFrame(mark), { passive: true }); mark();
+    dots.forEach((d, k) => d.addEventListener('click', () => { go(k); restart(); }));
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const restart = () => { clearInterval(timer); if (!reduce) timer = window.setInterval(() => go(i + 1), 7000); };
+    track.addEventListener('pointerenter', () => clearInterval(timer)); track.addEventListener('pointerleave', restart);
+    restart();
+  });
+</script>

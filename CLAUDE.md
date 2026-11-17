@@ -1,53 +1,68 @@
-# NCN Generator website: instructions for Claude
+# NCN Electric website: instructions for Claude
 
-People at NCN Electric use Claude to update this website by asking in plain language, for example
-"change the header to say ...". They are not developers. Your job is to make the change, publish it,
-and confirm it is live. Do not ask them technical questions or make them run any commands.
+People at NCN Electric (for example Blythe) update this website by asking in plain language and attaching files:
+"add Michelle's bio and photo", "change the 30 kW price to $225", "post an apprentice job opening".
+They are not developers. Make the change, publish it, confirm it is live, and reply in plain language.
+Do not ask them technical questions or make them run commands.
 
-Live site: https://ncnelectric-website-production.up.railway.app
+Live site: https://www.ncnelectric.com (Railway service `ncnelectric-website`, auto-deploys from `main`).
 
 ## How publishing works
-- Anything that reaches the `main` branch on GitHub goes live automatically on Railway in about 1 to 2 minutes.
-- If you are working on a session branch (for example `claude/...`) and cannot push to `main`, just push the branch.
-  The "Auto-publish" GitHub Action tests it and merges it into `main` for you.
+- Anything merged into `main` on GitHub goes live in about 2 to 3 minutes.
+- If you cannot push to `main`, push your session branch (`claude/...`). The "Auto-publish" GitHub Action builds,
+  tests and merges it into `main` for you.
 
 ## Steps for every change request
-1. Make the smallest edit that does what was asked. Keep the current design, colors, fonts and layout unless the
-   person asks to change them. If the request is unclear, ask one short plain-language question first.
-2. Run `npm test`. It must print `OK`. If it fails, fix the problem before publishing.
-3. Commit with a short, plain message that says what changed (for example "Header: new phone number").
-4. Publish:
-   - `git fetch origin main && git rebase origin/main`
-   - `git push origin HEAD:main`
-   - If that push is rejected, run `git push origin HEAD` to push your branch. Auto-publish merges it.
-5. Wait about 90 seconds. Then fetch the live page and confirm the new text or style is there. If you pushed a branch,
-   first check that the Auto-publish run succeeded (`gh run list` if available, or check the live page).
-6. Reply in plain language: what changed, and the live link. Do not paste code or diffs unless they ask.
+1. Make the smallest change that does what was asked. Keep the design, colors and layout unless asked to change them.
+   If the request is unclear, ask one short plain-language question first.
+2. Run `npm ci` (first time in a session), then `npm run build` and `npm test`. Both must pass. Fix anything that fails.
+3. Commit with a short, plain message (for example "Team: add Michelle's bio and photo").
+4. Publish: `git fetch origin main && git rebase origin/main`, then `git push origin HEAD:main`.
+   If that push is rejected, `git push origin HEAD` and Auto-publish merges it.
+5. Wait about 3 minutes, fetch the live page, and confirm the change is there.
+6. Reply in plain language with what changed and the link. No code or diffs unless asked.
 
-## Undoing a change
-If someone says "undo that" or "put it back", revert the commit with `git revert <commit>`. Never rewrite history.
-Publish the revert the same way as any other change.
+Undo: if someone says "undo that", `git revert <commit>` and publish the same way. Never rewrite history.
 
-## Where things are (`website/` is the site; nothing outside it is served)
-- `index.html` is the home page: top bar/header, navigation, services, contact block.
-- `calculator.html` is the rental calculator and application page.
-- CSS: `branding.css` (colors, fonts, logo), `hub.css` (main layout), `services-home.css`, `rental.css`,
-  `calculator.css`, `contact-us.css`.
-- JS: `services-home.js` and `app.js` (home page), `rental.js` and `rental-model.mjs` (calculator and pricing),
-  `application.js`, `acknowledgement.js`, `delivery.js`.
-- `terms.json` holds the rental terms text. `NCN T&C FINAL.docx` and `NCN-Generator-Services.pdf` are downloads.
-- Images: `flyer-*.png`, `generator-services-*.png`, `ncn-electric-logo.jpg`.
-- If someone uploads a new image, save it in `website/` with a simple lowercase name and no spaces.
+## Where things are
+| What people ask about | File to edit |
+|---|---|
+| Phone, email, addresses, hours, license, LinkedIn, generator contacts (Jose, Blythe) | `src/lib/site.ts` |
+| Team members, titles, bios, photos | `src/content/team/<firstname>.md` (one file per person; the text under `---` is the bio) |
+| Job openings | `src/content/openings/<job>.md` (copy `_example.md` without the underscore; delete the file when filled) |
+| Generator prices and fees (used by the website, Power Planner and server) | `src/lib/rental-model.mjs` (`rates` and `fees`) |
+| Generator FAQ, project gallery, testimonials, client logos, badges | `src/data/content.ts` |
+| Commercial services | `src/data/services.ts` |
+| Sectors and their projects | `src/data/sectors.ts` |
+| Power Planner items and wattages | `src/components/PowerPlanner.astro` (`loads` list at the top) |
+| Rental terms text | `src/data/terms.json` (one paragraph per line) - see "Extra care" below |
+| About page timeline and values | `src/pages/about.astro` (lists at the top) |
+| Page wording | `src/pages/*.astro` (home is `index.astro`; generator pages are in `src/pages/generators/`) |
+| Colors, fonts, buttons | `src/styles/global.css` |
+| Email wording sent by forms | `api.cjs` |
+| Old website addresses that redirect | `redirects.cjs` |
+
+## Photos and files people attach
+- Save images in `src/assets/img/<folder>/` with a simple lowercase name, no spaces (for example `team/michelle.jpg`,
+  `projects/venice-ymca-1.jpg`). The site resizes and compresses them automatically; any size is fine.
+- Team photo: save as `src/assets/img/team/<firstname>.jpg` and add `photo: team/<firstname>.jpg` to that person's file.
+  Square-ish head-and-shoulders photos look best.
+- Project photos: add to `src/assets/img/projects/` and list them in the project's `images` in `src/data/content.ts`.
+- PDFs for download (brochures): put in `public/` and link as `/<file>.pdf`.
+
+## Team page rules
+- Only Paul's title (CEO & President) is confirmed. Do not invent titles or bios for anyone. Leave `title` out until
+  someone tells you the title. A bio of "Bio coming soon." shows as a placeholder.
+- Use the name exactly as given. Add a last name only when told.
 
 ## Changes that need extra care
-- **Prices, rental terms, the T&C document, or legal wording** (`rental-model.mjs`, `terms.json`, the `.docx`):
-  before publishing, repeat the exact change back to the person and get a clear "yes". The terms are pending
-  counsel approval.
-- **Email** (application alerts to NCN and confirmations to applicants) is sent by the server through Microsoft 365
-  from the mailbox in the `MAIL_SENDER` Railway variable. Code: `api.cjs` (email text, validation) and `mail.cjs`.
-  Wording changes to these emails are fine (edit the text in `api.cjs`, run `npm test`). Never put email addresses
-  for NCN recipients in browser code; they live in the `MAIL_ADMIN_TO` Railway variable. If online submission shows
-  as unavailable, the Railway email variables are missing; tell the person to contact Sonic.
-- `server.cjs`, `mail.cjs`, `railway.json`, `package.json`, `scripts/`, `test/` and `.github/` keep the site running.
-  Do not change them for normal content requests.
-- This repository is public. Never add passwords, keys, tokens, customer data or internal documents to it.
+- **Prices, fees, rental terms or legal pages** (`rental-model.mjs`, `terms.json`, `privacy.astro`, `terms-of-use.astro`):
+  repeat the exact change back to the person and get a clear "yes" before publishing. The rental terms are pending
+  attorney review; never add internal notes, "counsel should..." text or drafts to public pages.
+- **Forms and email**: forms send email through Microsoft 365 only when the Railway email variables are set
+  (`MS_TENANT_ID`, `MS_CLIENT_ID`, `MS_CLIENT_SECRET`, `MAIL_SENDER`, `MAIL_ADMIN_TO`, optional `MAIL_GENERAL_TO`).
+  Until then forms show "being connected" with phone and email. If someone asks why forms don't work, explain that and
+  tell them to contact Sonic. Never put passwords, keys or recipient lists in website code.
+- `server.cjs`, `api.cjs`, `mail.cjs`, `redirects.cjs`, `astro.config.mjs`, `package.json`, `railway.json`, `scripts/`,
+  `test/` and `.github/` keep the site running. Do not change them for normal content requests.
+- This repository is public. Never add passwords, keys, customer data or internal documents, and only publish staff phone numbers when asked.

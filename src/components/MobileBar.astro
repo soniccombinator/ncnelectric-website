@@ -1,0 +1,16 @@
+---
+import Icon from './Icon.astro';
+import { site } from '../lib/site';
+const gen = Astro.url.pathname.startsWith('/generators');
+---
+<div class="mobile-bar" aria-label="Quick actions">
+  <a href={site.phoneHref} class="call"><Icon name="phone" size={20} /> Call</a>
+  <a href={gen ? '/generators#quote' : '/contact#quote'} class="quote"><Icon name="bolt" size={20} /> {gen ? 'Generator Quote' : 'Get a Quote'}</a>
+</div>
+<style>
+  .mobile-bar { position: fixed; z-index: 40; left: 12px; right: 12px; bottom: 12px; display: none; gap: 10px; padding: 8px; background: rgba(20,16,57,.92); backdrop-filter: blur(12px); border-radius: 999px; box-shadow: 0 12px 40px rgba(0,0,0,.3); }
+  .mobile-bar a { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 13px 18px; border-radius: 999px; font-weight: 700; text-decoration: none; }
+  .call { color: #fff; background: rgba(255,255,255,.1); }
+  .quote { flex: 1; background: var(--amber); color: var(--navy-950); }
+  @media (max-width: 900px) { .mobile-bar { display: flex; } }
+</style>

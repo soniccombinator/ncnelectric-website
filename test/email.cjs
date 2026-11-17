@@ -23,7 +23,7 @@ const good={company:'Acme Events',contact:'Pat Lee',email:'pat@example.com',phon
   await new Promise(r=>server.listen(0,'127.0.0.1',r));const base=`http://127.0.0.1:${server.address().port}`;
   const post=async(body,ip='1.1.1.1')=>{const r=await fetch(base+'/api/application',{method:'POST',headers:{'Content-Type':'application/json','X-Forwarded-For':ip},body:JSON.stringify(body)});return {status:r.status,body:await r.json()}};
 
-  assert.deepEqual(await (await fetch(base+'/api/status')).json(),{applications:true});
+  assert.deepEqual(await (await fetch(base+'/api/status')).json(),{applications:true,forms:true});
   let r=await post(good);assert.equal(r.status,200);assert.ok(/^NCN-[0-9A-F]{6}$/.test(r.body.reference));assert.equal(r.body.confirmationSent,true);
   assert.equal(sent.length,2);
   assert.deepEqual(sent[0].to,['a@ncnelectric.com','b@ncnelectric.com'],'alert goes to fixed NCN recipients');
@@ -39,13 +39,25 @@ const good={company:'Acme Events',contact:'Pat Lee',email:'pat@example.com',phon
   r=await post({...good,kw:999},'4.4.4.4');assert.equal(r.status,400);
   r=await post({...good,to:'evil@example.com',company:'Other Co'},'5.5.5.5');assert.deepEqual(sent.at(-2).to,['a@ncnelectric.com','b@ncnelectric.com'],'browser cannot pick recipients');
   fail=true;r=await post({...good,company:'Fail Co'},'6.6.6.6');assert.equal(r.status,502);fail=false;
+  // Lead endpoint: generator quote -> Blythe/Jose; contact -> general list; careers with attachment.
+  const lead=async(body,ip)=>{const r=await fetch(base+'/api/lead',{method:'POST',headers:{'Content-Type':'application/json','X-Forwarded-For':ip},body:JSON.stringify(body)});return {status:r.status,body:await r.json()}};
+  const L={kind:'generator',name:'Sam Ray',email:'sam@example.com',phone:'941-555-0102',location:'Venice, FL',message:'2 food trucks',consent:true};
+  let n=sent.length;r=await lead(L,'8.8.8.1');assert.equal(r.status,200);assert.equal(sent.length,n+2);assert.deepEqual(sent[n].to,['a@ncnelectric.com','b@ncnelectric.com']);assert.equal(sent[n].replyTo,'sam@example.com');assert.deepEqual(sent[n+1].to,['sam@example.com']);
+  r=await lead({...L,location:''},'8.8.8.2');assert.equal(r.status,400,'generator needs location');
+  r=await lead({...L,consent:false},'8.8.8.2');assert.equal(r.status,400,'consent required');
+  r=await lead({...L,kind:'bogus'},'8.8.8.2');assert.equal(r.status,400);
+  mailer.generalTo=['bd@ncnelectric.com'];n=sent.length;r=await lead({...L,kind:'contact',message:'Bid on a school'},'8.8.8.3');assert.equal(r.status,200);assert.deepEqual(sent[n].to,['bd@ncnelectric.com'],'contact goes to general list');
+  n=sent.length;r=await lead({...L,kind:'careers',message:'10 yrs',attachment:{name:'resume.pdf',type:'application/pdf',content:Buffer.from('%PDF-1.4 test').toString('base64')}},'8.8.8.4');assert.equal(r.status,200);assert.equal(sent[n].attachments[0].name,'resume.pdf');
+  r=await lead({...L,kind:'careers',attachment:{name:'x.exe',content:'AAAA'}},'8.8.8.5');assert.equal(r.status,400,'only pdf/doc');
+  r=await lead({...L,kind:'contact',attachment:{name:'a.pdf',content:'AAAA'}},'8.8.8.5');assert.equal(r.status,400,'attachments only on careers');
   for(let i=0;i<5;i++)await post({...good,company:'Rate '+i},'7.7.7.7');
   r=await post({...good,company:'Rate X'},'7.7.7.7');assert.equal(r.status,429,'rate limited');
 
   // Without a mailer the endpoint is off.
   const off=createApi({mailer:null});const s2=http.createServer(async(q,res)=>{await off(q,res)});await new Promise(x=>s2.listen(0,'127.0.0.1',x));
   const b2=`http://127.0.0.1:${s2.address().port}`;
-  assert.deepEqual(await (await fetch(b2+'/api/status')).json(),{applications:false});
+  assert.deepEqual(await (await fetch(b2+'/api/status')).json(),{applications:false,forms:false});
+  assert.equal((await fetch(b2+'/api/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})).status,503);
   assert.equal((await fetch(b2+'/api/application',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})).status,503);
-  server.close();s2.close();console.log('OK: email API (validation, recipients, confirmation, duplicates, honeypot, rate limit, off mode)');
+  server.close();s2.close();console.log('OK: email API (application + lead forms: validation, recipients, confirmation, attachments, duplicates, honeypot, rate limit, off mode)');
 })().catch(e=>{console.error(e);process.exit(1)});

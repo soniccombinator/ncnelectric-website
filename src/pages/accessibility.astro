@@ -1,0 +1,16 @@
+---
+import LegalPage from '../components/LegalPage.astro';
+import { site } from '../lib/site';
+---
+<LegalPage title="Accessibility Statement" description="NCN Electric's commitment to an accessible website." updated="November 16, 2026">
+  <p>{site.legalName} wants everyone to be able to use our website. We aim to meet the Web Content Accessibility Guidelines (WCAG) 2.1 Level AA.</p>
+  <h2>What we do</h2>
+  <ul>
+    <li>Text alternatives for meaningful images, and real text instead of text inside pictures.</li>
+    <li>Keyboard navigation, visible focus outlines and a "skip to content" link.</li>
+    <li>Readable color contrast and text that resizes.</li>
+    <li>Animations are reduced automatically if your device is set to reduce motion.</li>
+  </ul>
+  <h2>Need help?</h2>
+  <p>If any part of this site is hard to use, please tell us and we will help you get the information or service another way. Call <a href={site.phoneHref}>{site.phone}</a> or email <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
+</LegalPage>

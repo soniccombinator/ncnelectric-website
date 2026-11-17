@@ -1,0 +1,52 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Icon from '../components/Icon.astro';
+import LeadForm from '../components/LeadForm.astro';
+import { site } from '../lib/site';
+---
+<Base title="Contact NCN Electric" description="Contact NCN Electric in Venice and St. Petersburg, Florida. Request a bid, ask about generator rentals, or reach our team." image="sectors/municipalities.jpg">
+  <PageHero eyebrow="Contact" title="Let's power your next project." lead={`Call ${site.phone}, email ${site.email}, or send the form below. ${site.hours}.`} image="hero/construction-1.jpg" />
+  <section class="section" id="quote">
+    <div class="container contact">
+      <div class="reveal">
+        <span class="eyebrow">Request a bid or ask a question</span>
+        <h2>Tell us about your project.</h2>
+        <p class="lead">Include the project name, location, bid date and scope, and we'll route it to the right person.</p>
+        <ul class="info">
+          <li><span class="ic"><Icon name="phone" /></span><div><strong>Call</strong><a href={site.phoneHref}>{site.phone}</a><span class="muted small">Fax {site.fax}</span></div></li>
+          <li><span class="ic"><Icon name="mail" /></span><div><strong>Email</strong><a href={`mailto:${site.email}`}>{site.email}</a></div></li>
+          <li><span class="ic"><Icon name="clock" /></span><div><strong>Hours</strong><span>{site.hours}</span></div></li>
+          <li><span class="ic"><Icon name="bolt" /></span><div><strong>Generator rentals</strong><a href="/generators#quote">Get a generator quote</a></div></li>
+        </ul>
+      </div>
+      <div class="card form-card reveal" style="--d:.08s"><LeadForm kind="contact" /></div>
+    </div>
+  </section>
+  <section class="section bg-soft">
+    <div class="container">
+      <div class="section-head reveal"><span class="eyebrow">Offices</span><h2>Visit us.</h2></div>
+      <div class="grid grid-2">
+        {site.offices.map((o, i) => (
+          <article class="card office reveal" style={`--d:${i * 0.08}s`}>
+            <iframe title={`Map of ${o.name}`} loading="lazy" referrerpolicy="no-referrer-when-downgrade" src={`https://maps.google.com/maps?q=${encodeURIComponent(`${o.street}, ${o.city}, ${o.state} ${o.zip}`)}&z=14&output=embed`}></iframe>
+            <div class="body"><h3>{o.name}</h3><p>{o.street}<br />{o.city}, {o.state} {o.zip}</p><a class="btn btn-outline" href={o.map} target="_blank" rel="noopener"><Icon name="pin" size={18} /> Directions</a></div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>
+<style>
+  .contact { display: grid; grid-template-columns: 1fr 1.25fr; gap: 56px; align-items: start; scroll-margin-top: 80px; }
+  @media (max-width: 900px) { .contact { grid-template-columns: 1fr; } }
+  .info { list-style: none; padding: 0; margin: 28px 0 0; display: grid; gap: 18px; }
+  .info li { display: flex; gap: 16px; align-items: center; }
+  .info div { display: grid; }
+  .info a { font-weight: 600; text-decoration: none; font-size: 1.05rem; }
+  .ic { flex: none; display: grid; place-items: center; width: 50px; height: 50px; border-radius: 14px; background: linear-gradient(135deg, var(--navy), var(--blue)); color: #fff; }
+  .form-card { padding: clamp(22px, 3vw, 36px); }
+  .office { padding: 0; overflow: hidden; }
+  .office iframe { width: 100%; height: 280px; border: 0; display: block; filter: saturate(.9); }
+  .office .body { padding: 24px; }
+</style>

@@ -1,0 +1,108 @@
+---
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import terms from '../../data/terms.json';
+import { site } from '../../lib/site';
+// terms.json: one string per paragraph. Lines starting with "N. " become section headings.
+const paras = terms as string[];
+const title = paras[0];
+const body = paras.slice(1).filter((p) => p.trim());
+const isHead = (p: string) => /^\d{1,2}\.\s+\S/.test(p) && p.length < 120;
+const sections = body.filter(isHead);
+const slug = (p: string) => 's-' + p.match(/^\d+/)![0];
+---
+<Base title="Generator Rental Terms" description="NCN Electric Temporary Electric Service terms and conditions for generator rentals." heroDark={false}>
+  <section class="section terms-top">
+    <div class="container">
+      <span class="eyebrow">Generator rentals</span>
+      <h1>{title.replace('ServiceTerms', 'Service Terms')}</h1>
+      <div class="notice" role="note">
+        <Icon name="shield" size={22} />
+        <div>
+          <strong>Please read: summary of standard terms</strong>
+          <p>These are NCN Electric's standard Temporary Electric Service terms, provided for information. Your signed Service Order and the terms attached to it govern your rental. NCN may update these terms, and the version in your Service Order controls if anything differs. Nothing on this page is legal advice. Questions? Call <a href={site.phoneHref}>{site.phone}</a>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="section tight">
+    <div class="container layout">
+      <nav class="toc" aria-label="Sections">
+        <strong>Sections</strong>
+        <ol>{sections.map((s) => <li><a href={`#${slug(s)}`}>{s.replace(/^\d+\.\s*/, '')}</a></li>)}</ol>
+      </nav>
+      <article class="prose">
+        {body.map((p) => isHead(p) ? <h2 id={slug(p)}>{p}</h2> : <p>{p}</p>)}
+        <section id="acknowledge" class="ack card">
+          <h2>Acknowledge the rental terms</h2>
+          <p>Type your full name as your signature and confirm you have read these terms. You can download a copy for your records.</p>
+          <form class="form" data-ack>
+            <div class="row">
+              <div class="field"><label for="ack-name">Full name (typed signature) *</label><input id="ack-name" required maxlength="120" autocomplete="name" /></div>
+              <div class="field"><label for="ack-company">Company (if renting for a business)</label><input id="ack-company" maxlength="160" autocomplete="organization" /></div>
+            </div>
+            <div class="row">
+              <div class="field"><label for="ack-email">Email *</label><input id="ack-email" type="email" required maxlength="254" autocomplete="email" /></div>
+              <div class="field"><label for="ack-phone">Phone</label><input id="ack-phone" type="tel" maxlength="40" autocomplete="tel" /></div>
+            </div>
+            <label class="check"><input type="checkbox" id="ack-consent" required /> <span>I acknowledge that I have read and understand the NCN Electric, Inc. rental terms presented above.</span></label>
+            <button class="btn btn-primary" type="submit">Acknowledge rental terms</button>
+            <div class="form-note" role="status" aria-live="polite" hidden></div>
+            <button class="btn btn-outline" type="button" data-download hidden><Icon name="download" size={18} /> Download my acknowledgement</button>
+          </form>
+        </section>
+      </article>
+    </div>
+  </section>
+  <script type="application/json" id="terms-data" set:html={JSON.stringify(paras)} />
+</Base>
+<style>
+  .terms-top { padding-top: 140px; padding-bottom: 20px; }
+  .terms-top h1 { font-size: clamp(2rem, 4vw, 3rem); }
+  .notice { display: flex; gap: 16px; padding: 20px 22px; border-radius: 16px; background: #fff7e6; border: 1px solid #ffd98a; color: #5c3d00; max-width: 900px; }
+  .notice :global(svg) { flex: none; color: var(--amber-600); margin-top: 2px; }
+  .notice p { margin: 4px 0 0; }
+  .layout { display: grid; grid-template-columns: 280px 1fr; gap: 56px; align-items: start; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .toc { display: none; } }
+  .toc { position: sticky; top: 96px; max-height: calc(100vh - 120px); overflow: auto; font-size: .88rem; }
+  .toc ol { padding-left: 1.2em; margin: 10px 0 0; display: grid; gap: 6px; }
+  .toc a { text-decoration: none; color: var(--muted); }
+  .toc a:hover { color: var(--navy); }
+  .prose h2 { scroll-margin-top: 100px; }
+  .ack { margin-top: 48px; scroll-margin-top: 100px; }
+  .ack h2 { margin-top: 0; }
+</style>
+<script>
+  const form = document.querySelector<HTMLFormElement>('[data-ack]')!;
+  const note = form.querySelector<HTMLElement>('.form-note')!;
+  const dl = form.querySelector<HTMLButtonElement>('[data-download]')!;
+  const paras: string[] = JSON.parse(document.getElementById('terms-data')!.textContent!);
+  const v = (id: string) => (document.getElementById(id) as HTMLInputElement).value.trim();
+  let record: Record<string, string> | null = null;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!form.reportValidity()) return;
+    const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(paras)));
+    const version = [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, '0')).join('');
+    record = { signature: v('ack-name'), company: v('ack-company'), email: v('ack-email'), phone: v('ack-phone'), signedAt: new Date().toISOString(), termsVersion: version,
+      statement: 'I acknowledge that I have read and understand the NCN Electric, Inc. rental terms presented above.' };
+    try { localStorage.setItem('ncn-terms-ack', JSON.stringify(record)); } catch {}
+    let sent = false;
+    try {
+      const on = await fetch('/api/status', { cache: 'no-store' }).then((r) => r.json()).then((s) => s.forms === true);
+      if (on) {
+        const r = await fetch('/api/lead', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind: 'acknowledgement', name: record.signature, company: record.company, email: record.email, phone: record.phone || 'not provided', consent: true, page: location.pathname,
+          message: `Rental terms acknowledged.\nSigned at (UTC): ${record.signedAt}\nTerms version (SHA-256): ${version}\n${record.statement}` }) });
+        sent = r.ok;
+      }
+    } catch {}
+    note.hidden = false; note.className = 'form-note ok';
+    note.textContent = `Thank you, ${record.signature}. Your acknowledgement was recorded ${new Date(record.signedAt).toLocaleString()}. ${sent ? 'A copy was sent to NCN.' : 'Please download your copy and include it with your rental application.'}`;
+    dl.hidden = false;
+  });
+  dl.addEventListener('click', () => {
+    if (!record) return;
+    const text = `NCN ELECTRIC, INC.\nRENTAL TERMS ACKNOWLEDGEMENT\n\nTyped signature: ${record.signature}\nCompany: ${record.company || '(none)'}\nEmail: ${record.email}\nSigned at (UTC): ${record.signedAt}\nTerms version (SHA-256): ${record.termsVersion}\n\n${record.statement}\n\n----\n\n${paras.join('\n\n')}`;
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' })); a.download = 'NCN Rental Terms Acknowledgement.txt'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+</script>
