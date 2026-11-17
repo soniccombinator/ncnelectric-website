@@ -112,14 +112,34 @@ function adminEmail({ application: a, rental, estimate }, ref) {
 <p style="color:#666">The applicant confirmed this is a request for review only, not a confirmed reservation. Estimate recalculated on the server.</p>`),
   };
 }
+// Branded layout for the email the applicant receives (inline styles and tables for email clients).
+const LOGO_URL = 'https://www.ncnelectric.com/email/ncn-logo.jpg';
+const NAVY = '#292362', BLUE = '#4a63d3', FONT = 'font-family:Arial,Helvetica,sans-serif';
+const detailRows = rows => rows.map(([k, v], i) => `<tr><td style="${FONT};font-size:13px;color:#5b5f73;padding:10px 14px;width:42%;vertical-align:top;background:${i % 2 ? '#ffffff' : '#f5f6fb'};border-bottom:1px solid #e6e8f0">${esc(k)}</td><td style="${FONT};font-size:14px;color:#1d1d2b;padding:10px 14px;vertical-align:top;white-space:pre-wrap;background:${i % 2 ? '#ffffff' : '#f5f6fb'};border-bottom:1px solid #e6e8f0">${esc(v)}</td></tr>`).join('');
+const detailTable = (title, rows) => `<p style="${FONT};font-size:12px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:${BLUE};margin:28px 0 8px">${esc(title)}</p><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:1px solid #e6e8f0;border-radius:6px">${detailRows(rows)}</table>`;
+
 function confirmationEmail({ application: a, rental, estimate }, ref) {
+  const est = estimateRows(rental, estimate);
+  const [totalLabel, totalValue] = est[est.length - 1];
   return {
     subject: `We received your generator rental request (${ref})`,
-    html: wrap(`<p>Hi ${esc(a.contact)},</p>
-<p>Thank you for your generator rental application with NCN Electric. Our team will review it and contact you about availability and a final quote.</p>
-<p><b>This is not a confirmed reservation.</b> Availability, tax and any additional work are confirmed by NCN in your quote.</p>
-<h3>Your request</h3>${table([['Reference', ref], ['Company', a.company], ['Project / event', a.project], ['Site address', a.site], ['Dates', `${a.start} to ${a.end}`], ...estimateRows(rental, estimate)])}
-<p>Questions? Reply to this email.</p><p>NCN Electric<br>Power Generational Service</p>`),
+    html: `<!doctype html><html><body style="margin:0;padding:0;background:#eef0f6">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef0f6"><tr><td align="center" style="padding:28px 12px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:#ffffff;border-radius:10px;overflow:hidden;border:1px solid #dfe2ec">
+<tr><td align="center" style="padding:26px 24px 18px;border-bottom:4px solid ${NAVY}"><img src="${LOGO_URL}" width="96" height="96" alt="NCN Electric" style="display:block;border:0;width:96px;height:96px"><p style="${FONT};font-size:12px;letter-spacing:2px;text-transform:uppercase;color:${NAVY};margin:10px 0 0;font-weight:bold">Power Generational Service</p></td></tr>
+<tr><td style="background:${NAVY};padding:22px 32px"><p style="${FONT};font-size:22px;line-height:1.3;color:#ffffff;margin:0;font-weight:bold">We received your rental request</p><p style="${FONT};font-size:14px;color:#c9cdf2;margin:6px 0 0">Reference <b style="color:#ffffff">${esc(ref)}</b></p></td></tr>
+<tr><td style="padding:28px 32px 8px">
+<p style="${FONT};font-size:15px;line-height:1.6;color:#1d1d2b;margin:0 0 14px">Hi ${esc(a.contact)},</p>
+<p style="${FONT};font-size:15px;line-height:1.6;color:#1d1d2b;margin:0 0 18px">Thank you for your generator rental application with NCN Electric. Our team will review it and contact you about availability and a final quote.</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td style="background:#fff8e6;border-left:4px solid #e0a100;padding:12px 16px;${FONT};font-size:14px;line-height:1.5;color:#4a3b00"><b>This is not a confirmed reservation.</b> Availability, tax and any additional work are confirmed by NCN in your quote.</td></tr></table>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:22px"><tr><td style="background:#f5f6fb;border:1px solid #e6e8f0;border-radius:8px;padding:16px 18px"><p style="${FONT};font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#5b5f73;margin:0">${esc(totalLabel)}</p><p style="${FONT};font-size:24px;font-weight:bold;color:${NAVY};margin:4px 0 0">${esc(totalValue)}</p></td></tr></table>
+${detailTable('Your request', [['Reference', ref], ['Company', a.company], ['Project / event', a.project], ['Site address', a.site], ['Dates', `${a.start} to ${a.end}`]])}
+${detailTable('Rental estimate', est)}
+<p style="${FONT};font-size:15px;line-height:1.6;color:#1d1d2b;margin:26px 0 4px">Questions? Simply reply to this email and our generator team will help.</p>
+<p style="${FONT};font-size:15px;line-height:1.6;color:#1d1d2b;margin:14px 0 24px">Thank you,<br><b>NCN Electric</b><br><span style="color:#5b5f73">Power Generational Service</span></p>
+</td></tr>
+<tr><td style="background:${NAVY};padding:20px 32px" align="center"><p style="${FONT};font-size:13px;line-height:1.7;color:#ffffff;margin:0"><b>NCN Electric, Inc.</b> &middot; <a href="tel:+19414880005" style="color:#ffffff;text-decoration:none">(941) 488-0005</a> &middot; <a href="https://www.ncnelectric.com/generators" style="color:#ffffff;text-decoration:underline">www.ncnelectric.com</a></p><p style="${FONT};font-size:12px;color:#c9cdf2;margin:4px 0 0">Licensed &amp; veteran-owned &middot; Serving Southwest Florida since 1982 &middot; FL EC13010379</p></td></tr>
+</table></td></tr></table></body></html>`,
   };
 }
 function leadAdminEmail({ kind, lead: l }, ref) {
