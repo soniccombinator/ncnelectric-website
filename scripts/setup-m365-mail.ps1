@@ -1,4 +1,4 @@
-# One-time Microsoft 365 setup so the website can send email as one mailbox (default sonic@ncnelectric.com).
+# One-time Microsoft 365 setup so the website can send email as one mailbox (default agent@ncnelectric.com).
 # Run by an NCN Microsoft 365 admin (Global Admin, or Application Admin + Exchange Admin) from this repo folder:
 #   powershell -ExecutionPolicy Bypass -File scripts\setup-m365-mail.ps1
 # What it does:
@@ -6,7 +6,7 @@
 #   2. Grants that app Exchange "Application Mail.Send" scoped ONLY to the sender mailbox (Application RBAC).
 #   3. Creates a client secret and writes it plus the IDs straight into Railway variables. The secret is never displayed.
 param(
-  [string]$Sender = 'sonic@ncnelectric.com',
+  [string]$Sender = 'agent@ncnelectric.com',
   [string]$AdminTo = 'bsameit@ncnelectric.com,jalvarenga@ncnelectric.com',
   [string]$AppName = 'NCN Website Mailer',
   [int]$SecretMonths = 24

@@ -1,7 +1,7 @@
 // Sends email through Microsoft 365 (Microsoft Graph, app-only) from one approved mailbox.
 // Configuration comes only from environment variables (Railway variables in production):
 //   MS_TENANT_ID, MS_CLIENT_ID, MS_CLIENT_SECRET  Entra app registration (secret stays on the server)
-//   MAIL_SENDER                                    mailbox the site sends from, e.g. sonic@ncnelectric.com
+//   MAIL_SENDER                                    mailbox the site sends from, e.g. agent@ncnelectric.com
 //   MAIL_ADMIN_TO                                  comma-separated NCN recipients for generator alerts (Blythe, Jose)
 //   MAIL_GENERAL_TO (optional)                     recipients for contact/bid and careers forms; defaults to MAIL_ADMIN_TO
 const REQUIRED = ['MS_TENANT_ID', 'MS_CLIENT_ID', 'MS_CLIENT_SECRET', 'MAIL_SENDER', 'MAIL_ADMIN_TO'];
