@@ -1,6 +1,8 @@
 // Sends website email through Microsoft 365 (Microsoft Graph) from one mailbox (agent@ncnelectric.com).
-// Two ways to authorize, chosen automatically from the Railway variables:
+// Ways to send, chosen automatically from the Railway variables (first match wins):
 //
+// 0. Resend (current setup; no Microsoft admin approval): RESEND_API_KEY. The ncnelectric.com domain is verified
+//    in Resend with DNS records in GoDaddy (resend._domainkey TXT, send + rsend CNAMEs). Optional MAIL_FROM_NAME.
 // 1. Signed-in mailbox (current setup, no admin app approval needed):
 //      MS_REFRESH_TOKEN   created once by `node scripts/connect-email.cjs` (agent@ signs in on a phone/browser)
 //      DATA_DIR           Railway volume (/data); the token renews itself and is saved there
@@ -23,6 +25,10 @@ function mailConfig(env = process.env) {
   const missing = [];
   if (!common.sender) missing.push('MAIL_SENDER');
   if (!common.adminTo.length) missing.push('MAIL_ADMIN_TO');
+  if (String(env.RESEND_API_KEY || '').trim()) {
+    if (missing.length) return { enabled: false, missing };
+    return { enabled: true, mode: 'resend', apiKey: env.RESEND_API_KEY.trim(), fromName: String(env.MAIL_FROM_NAME || 'NCN Electric').trim(), ...common };
+  }
   if (String(env.MS_CLIENT_SECRET || '').trim()) {
     for (const k of ['MS_TENANT_ID', 'MS_CLIENT_ID']) if (!String(env[k] || '').trim()) missing.push(k);
     if (missing.length) return { enabled: false, missing };
@@ -77,6 +83,19 @@ function createMailer(config, fetchImpl = fetch) {
   }
   // to: array of addresses. html: full HTML body. replyTo: optional address.
   async function send({ to, subject, html, replyTo, attachments }) {
+    if (config.mode === 'resend') {
+      const body = { from: `${config.fromName} <${config.sender}>`, to, subject, html };
+      if (replyTo) body.reply_to = replyTo;
+      if (attachments && attachments.length) body.attachments = attachments.map(a => ({ filename: a.name, content: a.content }));
+      const r = await fetchImpl('https://api.resend.com/emails', {
+        method: 'POST', headers: { Authorization: `Bearer ${config.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+      });
+      if (r.status !== 200) {
+        const detail = await r.json().catch(() => ({}));
+        throw new Error(`Email service did not accept the email (${r.status} ${detail.name || detail.message || ''})`.trim());
+      }
+      return;
+    }
     const message = {
       subject,
       body: { contentType: 'HTML', content: html },

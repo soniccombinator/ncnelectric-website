@@ -30,6 +30,15 @@ const good={company:'Acme Events',contact:'Pat Lee',email:'pat@example.com',phon
   const dm3=createMailer(mailConfig({...denv,MS_REFRESH_TOKEN:'rt-new'}),dfetch);await dm3.getToken();assert.ok(dcalls.at(-1).body.includes('refresh_token=rt-new'),'reconnected variable wins over saved file');
   fs.rmSync(dir,{recursive:true,force:true});
 
+  // Resend mode wins when RESEND_API_KEY is set: from "NCN Electric <agent@>", reply_to, attachments, 200 = accepted.
+  const rcfg=mailConfig({RESEND_API_KEY:'re_test',MAIL_SENDER:'agent@ncnelectric.com',MAIL_ADMIN_TO:'a@ncnelectric.com',MS_REFRESH_TOKEN:'x'});
+  assert.equal(rcfg.mode,'resend');
+  const rcalls=[];const rfetch=async(url,opts)=>{rcalls.push({url,opts});return {ok:true,status:200,json:async()=>({id:'1'})}};
+  await createMailer(rcfg,rfetch).send({to:['x@example.com'],subject:'s',html:'h',replyTo:'r@example.com',attachments:[{name:'cv.pdf',type:'application/pdf',content:'QUJD'}]});
+  const rb=JSON.parse(rcalls[0].opts.body);
+  assert.equal(rcalls[0].url,'https://api.resend.com/emails');assert.equal(rb.from,'NCN Electric <agent@ncnelectric.com>');assert.equal(rb.reply_to,'r@example.com');assert.equal(rb.attachments[0].filename,'cv.pdf');
+  await assert.rejects(createMailer(rcfg,async()=>({ok:false,status:403,json:async()=>({name:'validation_error'})})).send({to:['x@example.com'],subject:'s',html:'h'}));
+
   // API with fake mailer.
   const sent=[];let fail=false;
   const mailer={adminTo:['a@ncnelectric.com','b@ncnelectric.com'],send:async msg=>{if(fail)throw new Error('down');sent.push(msg)}};

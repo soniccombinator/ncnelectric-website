@@ -22,10 +22,10 @@ npm test         # site smoke test + form API test
 Forms email NCN and send confirmations through Microsoft 365 from `agent@ncnelectric.com` (`MAIL_SENDER`).
 Recipients: `MAIL_ADMIN_TO` (generator team), optional `MAIL_GENERAL_TO` (contact/bid and careers; defaults to `MAIL_ADMIN_TO`).
 Until email is connected the forms show phone and email instead.
-- **Connect / reconnect** (no admin approval): `node scripts/connect-email.cjs`, then sign in as agent@ncnelectric.com
-  with the code shown. The token is stored in Railway (`MS_REFRESH_TOKEN`), renews itself daily and is kept on the
-  Railway volume (`DATA_DIR=/data`). agent@ must have MFA set up first (NCN's tenant requires it).
-- Alternative if IT ever creates an app registration: `scripts\setup-m365-mail.ps1` (sets `MS_TENANT_ID`, `MS_CLIENT_ID`, `MS_CLIENT_SECRET`).
+- **Current setup: Resend** (`RESEND_API_KEY` in Railway). ncnelectric.com is verified in Resend through GoDaddy DNS
+  records `resend._domainkey` (TXT) and `send` / `rsend` (CNAME). Do not delete those records. No Microsoft admin approval involved.
+- Microsoft 365 options remain in the code if NCN IT ever approves them: signed-in mailbox (`node scripts/connect-email.cjs`;
+  blocked today because NCN requires admin consent) or an app registration (`scripts\setup-m365-mail.ps1`).
 - Live test: `railway run node scripts/mail-test.cjs`
 
 ## Known items before relying on legal pages
