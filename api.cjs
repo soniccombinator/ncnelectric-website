@@ -97,49 +97,61 @@ function estimateRows(rental, e) {
     ['Estimated total before tax', e.customQuote ? 'Custom quote required (event beyond 85 one-way miles)' : money(e.total)],
   ];
 }
-const table = rows => `<table cellpadding="6" style="border-collapse:collapse;font-family:Arial,sans-serif;font-size:14px">${rows.map(([k, v]) => `<tr><td style="border:1px solid #ddd;background:#f6f6f6;font-weight:bold;vertical-align:top">${esc(k)}</td><td style="border:1px solid #ddd;white-space:pre-wrap">${esc(v)}</td></tr>`).join('')}</table>`;
-const wrap = inner => `<div style="font-family:Arial,sans-serif;font-size:14px;color:#222;max-width:680px">${inner}</div>`;
+// Branded email layout shared by every email the website sends (inline styles and tables for email clients).
+const LOGO_URL = 'https://www.ncnelectric.com/email/ncn-logo.jpg';
+const NAVY = '#292362', BLUE = '#4a63d3', FONT = 'font-family:Arial,Helvetica,sans-serif';
+const P = `${FONT};font-size:15px;line-height:1.6;color:#1d1d2b`;
+const para = (html, extra = '') => `<p style="${P};margin:0 0 14px;${extra}">${html}</p>`;
+const detailRows = rows => rows.map(([k, v], i) => { const bg = i % 2 ? '#ffffff' : '#f5f6fb'; return `<tr><td style="${FONT};font-size:13px;color:#5b5f73;padding:10px 14px;width:38%;vertical-align:top;background:${bg};border-bottom:1px solid #e6e8f0">${esc(k)}</td><td style="${FONT};font-size:14px;color:#1d1d2b;padding:10px 14px;vertical-align:top;white-space:pre-wrap;word-break:break-word;background:${bg};border-bottom:1px solid #e6e8f0">${esc(v)}</td></tr>`; }).join('');
+const detailTable = (title, rows) => `<p style="${FONT};font-size:12px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:${BLUE};margin:26px 0 8px">${esc(title)}</p><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:1px solid #e6e8f0">${detailRows(rows)}</table>`;
+const callout = (html, { bg = '#fff8e6', bar = '#e0a100', color = '#4a3b00' } = {}) => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:4px 0 6px"><tr><td style="background:${bg};border-left:4px solid ${bar};padding:12px 16px;${FONT};font-size:14px;line-height:1.5;color:${color}">${html}</td></tr></table>`;
+const highlight = (label, value) => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:18px"><tr><td style="background:#f5f6fb;border:1px solid #e6e8f0;border-radius:8px;padding:16px 18px"><p style="${FONT};font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#5b5f73;margin:0">${esc(label)}</p><p style="${FONT};font-size:24px;font-weight:bold;color:${NAVY};margin:4px 0 0">${esc(value)}</p></td></tr></table>`;
+const quote = text => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:4px 0 10px"><tr><td style="background:#f5f6fb;border-left:4px solid ${BLUE};padding:12px 16px;${FONT};font-size:14px;line-height:1.6;color:#33364a;white-space:pre-wrap">${esc(text)}</td></tr></table>`;
+const signoff = `<p style="${P};margin:24px 0 24px">Thank you,<br><b>NCN Electric</b><br><span style="color:#5b5f73">Licensed &amp; veteran-owned since 1982</span></p>`;
+function layout({ tagline = 'NCN Electric, Inc.', title, subtitle = '', body, internal = false }) {
+  const footer = internal
+    ? `<p style="${FONT};font-size:12px;line-height:1.6;color:#c9cdf2;margin:0">Sent automatically by the NCN Electric website &middot; <a href="https://www.ncnelectric.com" style="color:#ffffff;text-decoration:underline">www.ncnelectric.com</a></p>`
+    : `<p style="${FONT};font-size:13px;line-height:1.7;color:#ffffff;margin:0"><b>NCN Electric, Inc.</b> &middot; <a href="tel:+19414880005" style="color:#ffffff;text-decoration:none">(941) 488-0005</a> &middot; <a href="https://www.ncnelectric.com" style="color:#ffffff;text-decoration:underline">www.ncnelectric.com</a></p><p style="${FONT};font-size:12px;color:#c9cdf2;margin:4px 0 0">Licensed &amp; veteran-owned &middot; Serving Southwest Florida since 1982 &middot; FL EC13010379</p>`;
+  return `<!doctype html><html><body style="margin:0;padding:0;background:#eef0f6">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef0f6"><tr><td align="center" style="padding:28px 12px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:#ffffff;border-radius:10px;overflow:hidden;border:1px solid #dfe2ec">
+<tr><td align="center" style="padding:26px 24px 18px;border-bottom:4px solid ${NAVY}"><img src="${LOGO_URL}" width="96" height="96" alt="NCN Electric" style="display:block;border:0;width:96px;height:96px"><p style="${FONT};font-size:12px;letter-spacing:2px;text-transform:uppercase;color:${NAVY};margin:10px 0 0;font-weight:bold">${esc(tagline)}</p></td></tr>
+<tr><td style="background:${NAVY};padding:22px 32px"><p style="${FONT};font-size:22px;line-height:1.3;color:#ffffff;margin:0;font-weight:bold">${esc(title)}</p>${subtitle ? `<p style="${FONT};font-size:14px;color:#c9cdf2;margin:6px 0 0">${subtitle}</p>` : ''}</td></tr>
+<tr><td style="padding:28px 32px 8px">${body}</td></tr>
+<tr><td style="background:${NAVY};padding:20px 32px" align="center">${footer}</td></tr>
+</table></td></tr></table></body></html>`;
+}
+const refLine = ref => `Reference <b style="color:#ffffff">${esc(ref)}</b>`;
+const mailLink = (email, text) => `<a href="mailto:${esc(email)}" style="color:${BLUE}">${esc(text || email)}</a>`;
 
 function adminEmail({ application: a, rental, estimate }, ref) {
   const details = Object.entries(TEXT_FIELDS).map(([k, [label]]) => [label, a[k]]);
   details.push(['Site requirements / notes', a.notes || '(none)']);
+  const est = estimateRows(rental, estimate);
+  const [totalLabel, totalValue] = est[est.length - 1];
   return {
     subject: `New rental application: ${a.company} - ${rental.kw} kW (${ref})`,
-    html: wrap(`<h2 style="margin:0 0 8px">New generator rental application</h2>
-<p>Reference <b>${esc(ref)}</b>. Reply to this email to answer the applicant directly.</p>
-<h3>Customer and project</h3>${table(details)}
-<h3>Requested rental and estimate</h3>${table(estimateRows(rental, estimate))}
-<p style="color:#666">The applicant confirmed this is a request for review only, not a confirmed reservation. Estimate recalculated on the server.</p>`),
+    html: layout({ tagline: 'Power Generational Service', title: 'New generator rental application', subtitle: `${refLine(ref)} &middot; ${esc(a.company)} &middot; ${esc(rental.kw)} kW`, internal: true, body:
+      para(`Reply to this email to answer ${esc(a.contact)} directly${a.email ? ` (${mailLink(a.email)})` : ''}.`) +
+      highlight(totalLabel, totalValue) +
+      detailTable('Customer and project', details) +
+      detailTable('Requested rental and estimate', est) +
+      `<p style="${FONT};font-size:13px;line-height:1.5;color:#5b5f73;margin:20px 0 24px">The applicant confirmed this is a request for review only, not a confirmed reservation. Estimate recalculated on the server.</p>` }),
   };
 }
-// Branded layout for the email the applicant receives (inline styles and tables for email clients).
-const LOGO_URL = 'https://www.ncnelectric.com/email/ncn-logo.jpg';
-const NAVY = '#292362', BLUE = '#4a63d3', FONT = 'font-family:Arial,Helvetica,sans-serif';
-const detailRows = rows => rows.map(([k, v], i) => `<tr><td style="${FONT};font-size:13px;color:#5b5f73;padding:10px 14px;width:42%;vertical-align:top;background:${i % 2 ? '#ffffff' : '#f5f6fb'};border-bottom:1px solid #e6e8f0">${esc(k)}</td><td style="${FONT};font-size:14px;color:#1d1d2b;padding:10px 14px;vertical-align:top;white-space:pre-wrap;background:${i % 2 ? '#ffffff' : '#f5f6fb'};border-bottom:1px solid #e6e8f0">${esc(v)}</td></tr>`).join('');
-const detailTable = (title, rows) => `<p style="${FONT};font-size:12px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:${BLUE};margin:28px 0 8px">${esc(title)}</p><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:1px solid #e6e8f0;border-radius:6px">${detailRows(rows)}</table>`;
-
 function confirmationEmail({ application: a, rental, estimate }, ref) {
   const est = estimateRows(rental, estimate);
   const [totalLabel, totalValue] = est[est.length - 1];
   return {
     subject: `We received your generator rental request (${ref})`,
-    html: `<!doctype html><html><body style="margin:0;padding:0;background:#eef0f6">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef0f6"><tr><td align="center" style="padding:28px 12px">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:#ffffff;border-radius:10px;overflow:hidden;border:1px solid #dfe2ec">
-<tr><td align="center" style="padding:26px 24px 18px;border-bottom:4px solid ${NAVY}"><img src="${LOGO_URL}" width="96" height="96" alt="NCN Electric" style="display:block;border:0;width:96px;height:96px"><p style="${FONT};font-size:12px;letter-spacing:2px;text-transform:uppercase;color:${NAVY};margin:10px 0 0;font-weight:bold">Power Generational Service</p></td></tr>
-<tr><td style="background:${NAVY};padding:22px 32px"><p style="${FONT};font-size:22px;line-height:1.3;color:#ffffff;margin:0;font-weight:bold">We received your rental request</p><p style="${FONT};font-size:14px;color:#c9cdf2;margin:6px 0 0">Reference <b style="color:#ffffff">${esc(ref)}</b></p></td></tr>
-<tr><td style="padding:28px 32px 8px">
-<p style="${FONT};font-size:15px;line-height:1.6;color:#1d1d2b;margin:0 0 14px">Hi ${esc(a.contact)},</p>
-<p style="${FONT};font-size:15px;line-height:1.6;color:#1d1d2b;margin:0 0 18px">Thank you for your generator rental application with NCN Electric. Our team will review it and contact you about availability and a final quote.</p>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td style="background:#fff8e6;border-left:4px solid #e0a100;padding:12px 16px;${FONT};font-size:14px;line-height:1.5;color:#4a3b00"><b>This is not a confirmed reservation.</b> Availability, tax and any additional work are confirmed by NCN in your quote.</td></tr></table>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:22px"><tr><td style="background:#f5f6fb;border:1px solid #e6e8f0;border-radius:8px;padding:16px 18px"><p style="${FONT};font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#5b5f73;margin:0">${esc(totalLabel)}</p><p style="${FONT};font-size:24px;font-weight:bold;color:${NAVY};margin:4px 0 0">${esc(totalValue)}</p></td></tr></table>
-${detailTable('Your request', [['Reference', ref], ['Company', a.company], ['Project / event', a.project], ['Site address', a.site], ['Dates', `${a.start} to ${a.end}`]])}
-${detailTable('Rental estimate', est)}
-<p style="${FONT};font-size:15px;line-height:1.6;color:#1d1d2b;margin:26px 0 4px">Questions? Simply reply to this email and our generator team will help.</p>
-<p style="${FONT};font-size:15px;line-height:1.6;color:#1d1d2b;margin:14px 0 24px">Thank you,<br><b>NCN Electric</b><br><span style="color:#5b5f73">Power Generational Service</span></p>
-</td></tr>
-<tr><td style="background:${NAVY};padding:20px 32px" align="center"><p style="${FONT};font-size:13px;line-height:1.7;color:#ffffff;margin:0"><b>NCN Electric, Inc.</b> &middot; <a href="tel:+19414880005" style="color:#ffffff;text-decoration:none">(941) 488-0005</a> &middot; <a href="https://www.ncnelectric.com/generators" style="color:#ffffff;text-decoration:underline">www.ncnelectric.com</a></p><p style="${FONT};font-size:12px;color:#c9cdf2;margin:4px 0 0">Licensed &amp; veteran-owned &middot; Serving Southwest Florida since 1982 &middot; FL EC13010379</p></td></tr>
-</table></td></tr></table></body></html>`,
+    html: layout({ tagline: 'Power Generational Service', title: 'We received your rental request', subtitle: refLine(ref), body:
+      para(`Hi ${esc(a.contact)},`) +
+      para('Thank you for your generator rental application with NCN Electric. Our team will review it and contact you about availability and a final quote.', 'margin-bottom:18px') +
+      callout('<b>This is not a confirmed reservation.</b> Availability, tax and any additional work are confirmed by NCN in your quote.') +
+      highlight(totalLabel, totalValue) +
+      detailTable('Your request', [['Reference', ref], ['Company', a.company], ['Project / event', a.project], ['Site address', a.site], ['Dates', `${a.start} to ${a.end}`]]) +
+      detailTable('Rental estimate', est) +
+      para('Questions? Simply reply to this email and our generator team will help.', 'margin-top:26px') + signoff }),
   };
 }
 function leadAdminEmail({ kind, lead: l }, ref) {
@@ -147,14 +159,22 @@ function leadAdminEmail({ kind, lead: l }, ref) {
     ['Topic / position', l.topic], ['City or venue', l.location], ['Date', l.date], ['Message', l.message], ['Sent from page', l.page]].filter(([, v]) => v);
   return {
     subject: `${LEAD_KINDS[kind].label}: ${l.name}${l.company ? ` (${l.company})` : ''} [${ref}]`,
-    html: wrap(`<h2 style="margin:0 0 8px">${esc(LEAD_KINDS[kind].label)}</h2><p>From the NCN Electric website. Reply to this email to answer ${esc(l.name)} directly.</p>${table(rows)}`),
+    html: layout({ tagline: LEAD_KINDS[kind].team === 'generators' ? 'Power Generational Service' : 'NCN Electric, Inc.', title: LEAD_KINDS[kind].label, subtitle: `${refLine(ref)} &middot; ${esc(l.name)}${l.company ? ` &middot; ${esc(l.company)}` : ''}`, internal: true, body:
+      para(`From the NCN Electric website. Reply to this email to answer ${esc(l.name)} directly${l.email ? ` (${mailLink(l.email)})` : ''}.`) +
+      (l.message ? quote(l.message) : '') +
+      detailTable('Details', rows) + '<div style="height:24px"></div>' }),
   };
 }
 function leadConfirmationEmail({ kind, lead: l }, ref) {
   const what = { generator: 'generator quote request', acknowledgement: 'rental terms acknowledgement', contact: 'message', careers: 'application' }[kind];
   return {
     subject: `NCN Electric received your ${what} (${ref})`,
-    html: wrap(`<p>Hi ${esc(l.name)},</p><p>Thank you for contacting NCN Electric. We received your ${esc(what)} and will be in touch soon.</p><p>Your reference number is <b>${esc(ref)}</b>.</p>${l.message ? `<p style="color:#555">What you sent:</p><blockquote style="border-left:3px solid #ddd;margin:0;padding-left:12px;color:#555;white-space:pre-wrap">${esc(l.message)}</blockquote>` : ''}<p>NCN Electric<br>(941) 488-0005<br>www.ncnelectric.com</p>`),
+    html: layout({ tagline: LEAD_KINDS[kind].team === 'generators' ? 'Power Generational Service' : 'NCN Electric, Inc.', title: `We received your ${what}`, subtitle: refLine(ref), body:
+      para(`Hi ${esc(l.name)},`) +
+      para(`Thank you for contacting NCN Electric. We received your ${esc(what)} and will be in touch soon.`) +
+      para(`Your reference number is <b>${esc(ref)}</b>.`) +
+      (l.message ? `<p style="${FONT};font-size:12px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:${BLUE};margin:22px 0 8px">What you sent</p>` + quote(l.message) : '') +
+      para('Questions? Simply reply to this email.', 'margin-top:20px') + signoff }),
   };
 }
 
