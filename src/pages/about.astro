@@ -35,7 +35,7 @@ const values = [
         <p>As a veteran-owned small business, we value every client's experience. Our work includes the Walmart Supercenter in Bradenton, the VA nursing home in Port Charlotte, Prime Outlets in Ellenton, the SRQ air traffic control tower and many more.</p>
         <div class="kpis">
           <div><strong><span data-count={now - site.founded}>{now - site.founded}</span>+</strong><span>years</span></div>
-          <div><strong>2</strong><span>offices</span></div>
+          <div><strong>{site.offices.length}</strong><span>{site.offices.length === 1 ? 'office' : 'offices'}</span></div>
           <div><strong>12</strong><span>sectors</span></div>
         </div>
       </div>

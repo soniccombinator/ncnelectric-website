@@ -15,8 +15,6 @@ export const site = {
   offices: [
     { name: 'Venice (Headquarters)', street: '261 Blue Juniper Blvd', city: 'Venice', state: 'FL', zip: '34292',
       map: 'https://www.google.com/maps/search/?api=1&query=261+Blue+Juniper+Blvd+Venice+FL+34292' },
-    { name: 'Sarasota', street: '320 Central Ave', city: 'Sarasota', state: 'FL', zip: '34236',
-      map: 'https://www.google.com/maps/search/?api=1&query=320+Central+Ave+Sarasota+FL+34236' },
   ],
   serviceArea: ['Venice', 'Sarasota', 'Bradenton', 'North Port', 'Port Charlotte', 'Fort Myers', 'St. Petersburg', 'Tampa'],
   generators: {

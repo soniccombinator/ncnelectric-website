@@ -26,7 +26,7 @@ import { site } from '../lib/site';
   <section class="section bg-soft">
     <div class="container">
       <div class="section-head reveal"><span class="eyebrow">Offices</span><h2>Visit us.</h2></div>
-      <div class="grid grid-2">
+      <div class={site.offices.length > 1 ? 'grid grid-2' : 'grid'} style={site.offices.length > 1 ? undefined : 'max-width:640px'}>
         {site.offices.map((o, i) => (
           <article class="card office reveal" style={`--d:${i * 0.08}s`}>
             <iframe title={`Map of ${o.name}`} loading="lazy" referrerpolicy="no-referrer-when-downgrade" src={`https://maps.google.com/maps?q=${encodeURIComponent(`${o.street}, ${o.city}, ${o.state} ${o.zip}`)}&z=14&output=embed`}></iframe>
