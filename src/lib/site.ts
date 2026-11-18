@@ -22,7 +22,7 @@ export const site = {
   generators: {
     contacts: [
       { name: 'Jose', email: 'jalvarenga@ncnelectric.com', phone: '(941) 661-4249', phoneHref: 'tel:+19416614249' },
-      { name: 'Blythe', email: 'bsameit@ncnelectric.com', phone: '(704) 998-1933', phoneHref: 'tel:+17049981933' },
+      { name: 'Blythe', email: 'bsameit@ncnelectric.com', phone: '(941) 488-0005', phoneHref: 'tel:+19414880005' },
     ],
   },
 };
