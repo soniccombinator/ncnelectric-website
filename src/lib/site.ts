@@ -19,7 +19,7 @@ export const site = {
   serviceArea: ['Venice', 'Sarasota', 'Bradenton', 'North Port', 'Port Charlotte', 'Fort Myers', 'St. Petersburg', 'Tampa'],
   generators: {
     contacts: [
-      { name: 'Jose', email: 'jalvarenga@ncnelectric.com', phone: '(941) 661-4249', phoneHref: 'tel:+19416614249' },
+      { name: 'Jose', email: 'jalvarenga@ncnelectric.com', phone: '(941) 488-0005', phoneHref: 'tel:+19414880005' },
       { name: 'Blythe', email: 'bsameit@ncnelectric.com', phone: '(941) 488-0005', phoneHref: 'tel:+19414880005' },
     ],
   },
