@@ -1,5 +1,6 @@
 ---
 name: Michelle
+title: Estimator
 order: 5
 photo: team/michelle.jpg
 ---
