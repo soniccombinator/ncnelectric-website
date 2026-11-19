@@ -12,7 +12,6 @@ const perks = [
   { icon: 'users', t: 'Veteran-led team', d: 'A culture of discipline, safety, respect and continuous improvement.' },
   { icon: 'map', t: 'Close to home', d: 'Projects across Venice, Sarasota, Bradenton, Fort Myers, St. Pete and Tampa.' },
 ];
-const roles = ['Electricians', 'Apprentices', 'Helpers', 'Foremen', 'Estimators', 'Project Managers', 'Project Coordinators', 'Office team'];
 ---
 <Base title="Careers" description="Build your career with NCN Electric. Electricians, apprentices, foremen, project managers and office roles in Southwest Florida." image="hero/construction-2.jpg">
   <PageHero eyebrow="Careers" title="Build what Southwest Florida runs on." lead="NCN is always looking for great people: apprentices, electricians, foremen, project leaders and office pros." image="hero/construction-2.jpg">
@@ -32,8 +31,7 @@ const roles = ['Electricians', 'Apprentices', 'Helpers', 'Foremen', 'Estimators'
       {openings.length === 0 ? (
         <div class="empty card reveal">
           <Icon name="hardhat" size={40} />
-          <div><h3>We are always accepting applications</h3><p class="muted">We hire throughout the year. Join our talent network below and we'll reach out when a role fits. We regularly hire:</p>
-            <div class="roles">{roles.map((r) => <span class="pill">{r}</span>)}</div></div>
+          <div><h3>We are always accepting applications</h3><p class="muted">We hire throughout the year. Join our talent network below and we'll reach out when a role fits.</p></div>
         </div>
       ) : (
         <div class="jobs">{openings.map((o) => (
