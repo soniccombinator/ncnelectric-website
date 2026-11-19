@@ -3,6 +3,7 @@ name: Michelle
 title: Estimator
 order: 5
 photo: team/michelle.jpg
+linkedin: https://www.linkedin.com/in/michelle-clifton-a5a7649
 ---
 Michelle Clifton brings more than 20 years of experience in the electrical industry, with a background in residential electrical work, home building, and commercial electrical estimating. Originally from Virginia, she has made Florida home and brings a hands-on understanding of construction and electrical work to every project she estimates.
 
