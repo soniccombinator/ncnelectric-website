@@ -4,7 +4,7 @@ import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
 import Icon from '../components/Icon.astro';
 import LeadForm from '../components/LeadForm.astro';
-// Openings come from src/content/openings/*.md. With no files, the page says there are no openings right now.
+// Openings come from src/content/openings/*.md. With no files, the page invites people to join the talent network.
 const openings = (await getCollection('openings')).sort((a, b) => (b.data.posted?.getTime() ?? 0) - (a.data.posted?.getTime() ?? 0));
 const perks = [
   { icon: 'building', t: 'Landmark projects', d: 'Airports, hospitals, schools and stadiums you can point to for decades.' },
@@ -32,7 +32,7 @@ const roles = ['Electricians', 'Apprentices', 'Helpers', 'Foremen', 'Estimators'
       {openings.length === 0 ? (
         <div class="empty card reveal">
           <Icon name="hardhat" size={40} />
-          <div><h3>No open positions right now</h3><p class="muted">We hire throughout the year. Join our talent network below and we'll reach out when a role fits. We regularly hire:</p>
+          <div><h3>We are always accepting applications</h3><p class="muted">We hire throughout the year. Join our talent network below and we'll reach out when a role fits. We regularly hire:</p>
             <div class="roles">{roles.map((r) => <span class="pill">{r}</span>)}</div></div>
         </div>
       ) : (
