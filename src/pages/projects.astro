@@ -22,7 +22,7 @@ const sets = await Promise.all(gallery.map(async (p) => JSON.stringify({ name: p
             <article class="card now reveal" style={`--d:${(i % 3) * 0.05}s`}>
               <span class="pill">In progress</span>
               <h3>{p.name}</h3>
-              <p class="loc">{p.location}</p>
+              <p class="loc">{p.location}{p.partner && <> · with {p.partner}</>}</p>
             </article>
           ))}
         </div>

@@ -29,16 +29,16 @@ export const gallery = [
 // Current projects (work in progress), listed on /projects above the photo gallery.
 // When one is finished, delete it here (or move it into the gallery above with photos).
 export const currentProjects = [
-  { name: 'Sarasota County Facility', location: 'Nokomis, FL' },
-  { name: 'Pine Echo', location: 'North Fort Myers, FL' },
-  { name: 'City Park', location: 'Bradenton, FL' },
-  { name: 'Tunnel to Towers', location: 'Bradenton, FL' },
+  { name: 'Fleet Facility', location: 'Nokomis, FL', partner: 'Willis A. Smith Construction' },
+  { name: 'Pine Echo', location: 'North Fort Myers, FL', partner: 'PIKE Construction' },
+  { name: 'City Park', location: 'Bradenton, FL', partner: 'Tandem Construction' },
+  { name: 'Tunnel to Towers', location: 'Bradenton, FL', partner: 'ME&S' },
   { name: 'Happy Frog', location: 'Bradenton, FL' },
-  { name: 'Grease Monkey', location: 'Palmetto, FL' },
-  { name: 'OP-7', location: 'Palmetto, FL' },
-  { name: 'Sara Bay', location: 'Sarasota, FL' },
-  { name: 'Ed Smith Stadium HVAC Renovation', location: 'Sarasota, FL' },
-  { name: 'Mote SEA', location: 'Sarasota, FL' },
+  { name: 'Grease Monkey', location: 'Palmetto, FL', partner: 'J.E. Charlotte Construction' },
+  { name: 'OP-7', location: 'Palmetto, FL', partner: 'J.E. Charlotte Construction' },
+  { name: 'Sara Bay', location: 'Sarasota, FL', partner: 'J.E. Charlotte Construction' },
+  { name: 'Ed Smith Stadium HVAC Renovation', location: 'Sarasota, FL', partner: 'Tandem Construction' },
+  { name: 'Mote SEA', location: 'Sarasota, FL', partner: 'Willis A. Smith Construction' },
 ];
 
 export const testimonials = [
