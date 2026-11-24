@@ -3,7 +3,7 @@ import { Image, getImage } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
 import CtaBand from '../components/CtaBand.astro';
-import { gallery } from '../data/content';
+import { gallery, currentProjects } from '../data/content';
 import { sectors } from '../data/sectors';
 import { img } from '../lib/images';
 const used = new Set(gallery.map((g) => g.sector));
@@ -13,8 +13,26 @@ const sets = await Promise.all(gallery.map(async (p) => JSON.stringify({ name: p
 ---
 <Base title="Project Gallery" description="Completed and in-progress commercial electrical projects by NCN Electric across Southwest Florida." image="projects/suncoast-1.jpg">
   <PageHero eyebrow="Project gallery" title="Our commitment to excellence is always on display." lead="Work in progress and completed projects from across Southwest Florida." image="projects/market-walk-1.jpg" />
+  {currentProjects.length > 0 && (
+    <section class="section bg-soft" id="current">
+      <div class="container">
+        <div class="section-head reveal"><span class="eyebrow">Under construction</span><h2>Current projects</h2></div>
+        <div class="grid grid-3">
+          {currentProjects.map((p, i) => (
+            <article class="card now reveal" style={`--d:${(i % 3) * 0.05}s`}>
+              <span class="pill">In progress</span>
+              <h3>{p.name}</h3>
+              <p class="loc">{p.location}</p>
+              {p.owner && <p class="muted owner">Owner: {p.owner}</p>}
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
   <section class="section">
     <div class="container">
+      <div class="section-head reveal"><span class="eyebrow">Gallery</span><h2>Completed work</h2></div>
       <div class="filters reveal" role="group" aria-label="Filter projects by sector">
         <button class="on" data-filter="all">All</button>
         {filters.map((f) => <button data-filter={f.slug}>{f.title}</button>)}
@@ -61,6 +79,9 @@ const sets = await Promise.all(gallery.map(async (p) => JSON.stringify({ name: p
   .body h3 { margin: 10px 0 4px; }
   .loc { color: var(--blue); font-weight: 600; font-size: .92rem; margin-bottom: 8px; }
   .body .muted { margin: 0; font-size: .95rem; }
+  .now h3 { margin: 12px 0 4px; }
+  .now .loc { margin-bottom: 0; }
+  .now .owner { margin: 6px 0 0; font-size: .92rem; }
   .lb { width: 100vw; height: 100vh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: rgba(8,6,28,.95); color: #fff; }
   .lb[open] { display: grid; place-items: center; }
   .lb figure { margin: 0; max-width: 90vw; text-align: center; }

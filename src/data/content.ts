@@ -26,6 +26,21 @@ export const gallery = [
   { name: 'Heartis of Venice', location: 'Venice, FL', sector: 'healthcare', status: 'Completed', details: '191,000 sq ft senior living community.', images: ['sectors/healthcare-heartis.jpg'] },
 ];
 
+// Current projects (work in progress), listed on /projects above the photo gallery.
+// When one is finished, delete it here (or move it into the gallery above with photos).
+export const currentProjects = [
+  { name: 'Sarasota County Facility', owner: 'Sarasota County', location: 'Nokomis, FL' },
+  { name: 'Pine Echo', owner: 'Lee County', location: 'North Fort Myers, FL' },
+  { name: 'City Park', location: 'Bradenton, FL' },
+  { name: 'Tunnel to Towers', location: 'Bradenton, FL' },
+  { name: 'Happy Frog', owner: 'City of Bradenton', location: 'Bradenton, FL' },
+  { name: 'Grease Monkey', owner: 'Manatee County', location: 'Palmetto, FL' },
+  { name: 'OP-7', owner: 'Manatee County', location: 'Palmetto, FL' },
+  { name: 'Sara Bay', owner: 'Manatee County', location: 'Sarasota, FL' },
+  { name: 'Ed Smith Stadium HVAC Renovation', location: 'Sarasota, FL' },
+  { name: 'Mote SEA', location: 'Sarasota, FL' },
+];
+
 export const testimonials = [
   { quote: 'The NCN team takes a professional approach to every project. They understand deadlines and go above and beyond to get the job done. They are fair in pricing of change orders, a difficulty with many electricians. I invite them to bid all of my projects.',
     name: 'Dave Sessions', company: 'Willis A. Smith Construction', project: 'Venice Elementary School' },
